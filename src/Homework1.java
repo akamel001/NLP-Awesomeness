@@ -15,8 +15,10 @@ public class Homework1 {
      * @param args
      */
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
 
+			Homework1 test = new Homework1();
+
+			test.findNGrams("../data/test", 1);
     }
     
     /**
@@ -30,13 +32,13 @@ public class Homework1 {
             while (scanner.hasNextLine()) {
                 plaintext += scanner.nextLine() + "\n";
             }
-            ArrayList<String> words = new ArrayList<String>(Arrays.asList(plaintext.split(" \t")));
+            ArrayList<String> words = new ArrayList<String>(Arrays.asList(plaintext.split(" |\n")));
             while(words.remove("")); //Eliminate multiple consecutive spaces
             for(int i = 0; i < words.size() - (n - 1); i++) {
                 String ngram = "";
-                for(int j = i; j < i + n; j++)
-                    ngram += words.get(j);
-                int ngramCount = ngrams.get(i) == null ? 0 : ngrams.get(i);
+					 for(int j = i; j < i + n; j++)
+                    ngram += words.get(j) + " ";
+                int ngramCount = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
                 ngrams.put(ngram, ngramCount + 1);
             }
         } catch (FileNotFoundException e) {
@@ -47,5 +49,5 @@ public class Homework1 {
     }
     
     public static void probabilityTable() {}
-
+    
 }
