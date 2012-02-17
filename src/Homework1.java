@@ -15,10 +15,8 @@ public class Homework1 {
      * @param args
      */
     public static void main(String[] args) {
-        findNGrams("omg", 5);
-        System.out.println(ngrams);
-        System.out.println(nMinusOneGrams);
-        System.out.println(probability("my cat is on fire"));
+			Homework1 test = new Homework1();
+			test.findNGrams("../data/test", 1);
     }
     
     /**
@@ -50,7 +48,7 @@ public class Homework1 {
             scanner.close();
         }
     }
-    
+
     public static String getNGram(ArrayList<String> words, int pos, int n) {
         String ngram = "";
         for(int j = pos; j < pos + n; j++)
