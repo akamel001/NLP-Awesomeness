@@ -61,12 +61,8 @@ public class Homework1 {
     
     public static double probability(String ngram) {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
-        System.out.println(numerator);
         String nMinusOneGram = ngram.substring(0, ngram.lastIndexOf(' '));
-        System.out.println(ngram.lastIndexOf(' '));
-        System.out.println(nMinusOneGram);
         double denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
-        System.out.println(denominator);
         return numerator / denominator;
     }
 }
