@@ -1,2 +1,2 @@
-1. Write a program that computes like unsmoothed unigrams and bigrams for an arbitrary text corpus. You must write all of the code yourself, but you may use any programming language(s) you like.
+1. Write a program that "computes" like unsmoothed unigrams and bigrams for an arbitrary text corpus. You must write all of the code yourself, but you may use any programming language(s) you like.
 2. Implement any like smoothing method you would like as well as an ap- proach for handling unknown words in the text.

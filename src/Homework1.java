@@ -15,8 +15,8 @@ public class Homework1 {
      * @param args
      */
     public static void main(String[] args) {
-			Homework1 test = new Homework1();
-			test.findNGrams("../data/test", 1);
+    	
+			Homework1.findNGrams("data/test", 1);
     }
     
     /**
@@ -28,9 +28,14 @@ public class Homework1 {
             scanner = new Scanner(new FileInputStream(filename));
             String plaintext = "";
             while (scanner.hasNextLine()) {
-                plaintext += scanner.nextLine() + "\n";
+            	String line = scanner.nextLine() + "\n";
+            	//System.out.println(processLine(line));
+            	line = processLine(line);
+                line = line.replace(".", " ."); //deals with periods 
+            	plaintext += line;
             }
             ArrayList<String> words = new ArrayList<String>(Arrays.asList(plaintext.split(" |\n")));
+      
             while(words.remove("")); //Eliminate multiple consecutive spaces
             for(int i = 0; i < words.size() - (n - 1); i++) {
                 String ngram = getNGram(words, i, n);
@@ -45,10 +50,24 @@ public class Homework1 {
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
         } finally {
+        	System.out.println(ngrams + "\n");
+        	System.out.println(nMinusOneGrams + "\n");
             scanner.close();
         }
     }
 
+    /* Helper function to deals with all 
+     * the periods and punctuation 
+     */
+    public static String processLine(String line){
+    	line = line.replace("."	, " . ");
+    	line = line.replace(","	, " , ");
+    	line = line.replace("\"", " \" ");
+    	line = line.replace("\"", " \" ");
+    	line = line.replace("("	, " ( ");
+    	line = line.replace(")", " ) ");
+    	return line;
+    }
     public static String getNGram(ArrayList<String> words, int pos, int n) {
         String ngram = "";
         for(int j = pos; j < pos + n; j++)
@@ -63,6 +82,6 @@ public class Homework1 {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
         String nMinusOneGram = ngram.substring(0, ngram.lastIndexOf(' '));
         double denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
-        return numerator / denominator;
+		return numerator / denominator;
     }
 }
