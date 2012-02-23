@@ -3,6 +3,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 
@@ -18,14 +21,15 @@ public class Homework1 {
      */
     public static void main(String[] args) {
     	
-		homework.findNGrams("data/Test.txt", 1);
-
-        	//Unigram
-		homework.findNGrams("data/Test.txt", 2);
+    	Iterator<Entry<String, Integer>> it = ngrams.entrySet().iterator();
+    	
+       //Unigram 
+    	//TODO Check logic in findNGrams for unigram ( < 2 fails)
+/*		Homework1.findNGrams("data/test", 1);
 		//iterate through the list of unigrams
-		Iterator it = ngrams.entrySet().iterator();
+	
 		while (it.hasNext()) {
-			Map.Entry pairs = (Map.Entry)it.next();
+			Entry<String, Integer> pairs = it.next();
 			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
 			//get the probability of the unigram
 			double prob= probability(pairs.getKey().toString());
@@ -34,13 +38,13 @@ public class Homework1 {
 			it.remove();
 		}
 		System.out.println(unigram);
-
+*/
 		//bigram
-		homework.findNGrams("data/Test.txt", 3);
+		Homework1.findNGrams("data/test", 2);
 		//iterate through the list of unigrams
 		it = ngrams.entrySet().iterator();
 		while (it.hasNext()) {
-			Map.Entry pairs = (Map.Entry)it.next();
+			Entry<String, Integer> pairs = it.next();
 			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
 			//get the probability of the bigram
 			double prob= probability(pairs.getKey().toString());
@@ -61,9 +65,7 @@ public class Homework1 {
             String plaintext = "";
             while (scanner.hasNextLine()) {
             	String line = scanner.nextLine() + "\n";
-            	//System.out.println(processLine(line));
             	line = processLine(line);
-                line = line.replace(".", " ."); //deals with periods 
             	plaintext += line;
             }
             ArrayList<String> words = new ArrayList<String>(Arrays.asList(plaintext.split(" |\n")));
@@ -75,7 +77,6 @@ public class Homework1 {
                 ngrams.put(ngram, ngramCount + 1);
                 
                 String nMinusOneGram = getNGram(words, i, n - 1);
-                //System.out.println(nMinusOneGram);
                 int nMinusOneGramCount = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
                 nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
             }
@@ -112,6 +113,7 @@ public class Homework1 {
     
     public static double probability(String ngram) {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
+        
         String nMinusOneGram = ngram.substring(0, ngram.lastIndexOf(' '));
         double denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
 		return numerator / denominator;
