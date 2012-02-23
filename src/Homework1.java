@@ -11,12 +11,44 @@ public class Homework1 {
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
     
+    private static HashMap<String, Double> unigram = new HashMap<String, Double>();
+    private static HashMap<String, Double> bigram = new HashMap<String, Double>();
     /**
      * @param args
      */
     public static void main(String[] args) {
     	
-			Homework1.findNGrams("data/test", 1);
+		homework.findNGrams("data/Test.txt", 1);
+
+        	//Unigram
+		homework.findNGrams("data/Test.txt", 2);
+		//iterate through the list of unigrams
+		Iterator it = ngrams.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
+			//get the probability of the unigram
+			double prob= probability(pairs.getKey().toString());
+			//add the value to the unigram hash table
+			unigram.put(pairs.getKey().toString(), prob);
+			it.remove();
+		}
+		System.out.println(unigram);
+
+		//bigram
+		homework.findNGrams("data/Test.txt", 3);
+		//iterate through the list of unigrams
+		it = ngrams.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
+			//get the probability of the bigram
+			double prob= probability(pairs.getKey().toString());
+			//add the value to the bigram hash table
+			bigram.put(pairs.getKey().toString(), prob);
+			it.remove();
+		}
+		System.out.println(bigram);
     }
     
     /**
