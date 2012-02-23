@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
@@ -14,44 +13,33 @@ public class Homework1 {
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
     
-    private static HashMap<String, Double> unigram = new HashMap<String, Double>();
+    //private static HashMap<String, Double> unigram = new HashMap<String, Double>();
     private static HashMap<String, Double> bigram = new HashMap<String, Double>();
     /**
      * @param args
      */
     public static void main(String[] args) {
     	
-    	Iterator<Entry<String, Integer>> it = ngrams.entrySet().iterator();
-    	
-       //Unigram 
-    	//TODO Check logic in findNGrams for unigram ( < 2 fails)
-/*		Homework1.findNGrams("data/test", 1);
-		//iterate through the list of unigrams
-	
-		while (it.hasNext()) {
-			Entry<String, Integer> pairs = it.next();
-			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
-			//get the probability of the unigram
-			double prob= probability(pairs.getKey().toString());
-			//add the value to the unigram hash table
-			unigram.put(pairs.getKey().toString(), prob);
-			it.remove();
-		}
-		System.out.println(unigram);
-*/
+
+
 		//bigram
+    	//TODO Does not work when n = 1 need 
 		Homework1.findNGrams("data/test", 2);
-		//iterate through the list of unigrams
-		it = ngrams.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String, Integer> pairs = it.next();
-			//System.out.println(pairs.getKey() + " = " + pairs.getValue());
-			//get the probability of the bigram
-			double prob= probability(pairs.getKey().toString());
-			//add the value to the bigram hash table
-			bigram.put(pairs.getKey().toString(), prob);
-			it.remove();
+		//TODO Only workds for bigram not N-gram (fix later)
+		
+    	Iterator<Entry<String, Integer>> itr1 = nMinusOneGrams.entrySet().iterator();
+    	Iterator<Entry<String, Integer>> itr2 = nMinusOneGrams.entrySet().iterator();
+		while(itr1.hasNext()){
+			Entry<String, Integer> key1 = itr1.next();
+			while(itr2.hasNext()){
+				Entry<String, Integer> key2 = itr2.next();
+				String grams = key1.getKey() + " "+ key2.getKey();
+				double prob= probability(grams);
+				bigram.put(grams, prob);
+			}
+			itr2 = nMinusOneGrams.entrySet().iterator();
 		}
+		
 		System.out.println(bigram);
     }
     
@@ -69,17 +57,21 @@ public class Homework1 {
             	plaintext += line;
             }
             ArrayList<String> words = new ArrayList<String>(Arrays.asList(plaintext.split(" |\n")));
-      
+            
             while(words.remove("")); //Eliminate multiple consecutive spaces
-            for(int i = 0; i < words.size() - (n - 1); i++) {
-                String ngram = getNGram(words, i, n);
+            
+            for(int i = 0; (n != 1) && i < words.size() - (n - 1); i++) {
+            	String ngram = getNGram(words, i, n);
                 int ngramCount = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
                 ngrams.put(ngram, ngramCount + 1);
-                
-                String nMinusOneGram = getNGram(words, i, n - 1);
+            }
+            
+            for(int i = 0; i <= words.size() - (n -1); i++){
+                String nMinusOneGram = getNGram(words, i, n -1);
                 int nMinusOneGramCount = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
                 nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
             }
+            
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
         } finally {
@@ -103,6 +95,7 @@ public class Homework1 {
     }
     public static String getNGram(ArrayList<String> words, int pos, int n) {
         String ngram = "";
+        //System.out.println(pos + " " + n);
         for(int j = pos; j < pos + n; j++)
             if(j == pos + n - 1)
                 ngram += words.get(j);
@@ -113,8 +106,8 @@ public class Homework1 {
     
     public static double probability(String ngram) {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
-        
-        String nMinusOneGram = ngram.substring(0, ngram.lastIndexOf(' '));
+        int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
+        String nMinusOneGram = ngram.substring(0, index);
         double denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
 		return numerator / denominator;
     }
