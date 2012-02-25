@@ -9,7 +9,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 
-public class homework1 {
+public class Homework1 {
 
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
@@ -22,7 +22,7 @@ public class homework1 {
 
     public static void main(String[] args) {
 
-        homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
+        Homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
 
         buildProbabilityTable(LANGUAGE_MODEL_ORDER);
 
