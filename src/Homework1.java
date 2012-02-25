@@ -22,7 +22,6 @@ public class Homework1 {
 
     public static void main(String[] args) {
 
-        //TODO Does not work when n = 1 need
         Homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
 
         buildProbabilityTable(LANGUAGE_MODEL_ORDER);
