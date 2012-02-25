@@ -13,23 +13,30 @@ public class Homework1 {
 
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
+    private static int wordCount = 0;
 
     //private static HashMap<String, Double> unigram = new HashMap<String, Double>();
     private static HashMap<String, Double> bigram = new HashMap<String, Double>();
 
+    private static final int LANGUAGE_MODEL_ORDER = 2;
 
     public static void main(String[] args) {
+
         //TODO Does not work when n = 1 need
-        Homework1.findNGrams("data/EnronDataset/train.txt", 3);
+        Homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
 
-        buildProbabilityTable();
+        buildProbabilityTable(LANGUAGE_MODEL_ORDER);
 
-        System.out.println(ngrams);
-        System.out.println(nMinusOneGrams);
+        //System.out.println(ngrams);
+        //System.out.println(nMinusOneGrams);
         System.out.println(bigram);
     }
 
-    public static void buildProbabilityTable() {
+    /**
+     * Constructs probability tables
+     * @param n - order of the language model
+     */
+    public static void buildProbabilityTable(int n) {
         System.out.println("Constructing Probability Tables");
 
         //TODO Only workds for bigram not N-gram (fix later)
@@ -40,7 +47,7 @@ public class Homework1 {
             while(itr2.hasNext()) {
                 Entry<String, Integer> key2 = itr2.next();
                 String grams = key1.getKey() + " " + key2.getKey();
-                double prob = probability(grams);
+                double prob = probability(grams, n);
                 bigram.put(grams, prob);
             }
             itr2 = nMinusOneGrams.entrySet().iterator();
@@ -58,7 +65,8 @@ public class Homework1 {
         ArrayList<String> sentences = new ArrayList<String>();
         try {
             scanner = new Scanner(new FileInputStream(filename));
-            scanner.useDelimiter(Pattern.compile("[.][^12345890]")); //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
+          //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
+            scanner.useDelimiter(Pattern.compile("[.][^12345890]"));
             while (scanner.hasNextLine()) {
                 System.out.println(scanner.nextLine() + ".");
                 sentences.add(scanner.nextLine() + ".");
@@ -84,13 +92,13 @@ public class Homework1 {
 
         System.out.println("Building word frequency tables");
 
-        for(int i = 0; (n != 1) && i < words.size() - (n - 1); i++) {
+        for(int i = 0; i < words.size() - (n - 1); i++) {
             String ngram = getNGram(words, i, n);
             int ngramCount = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
             ngrams.put(ngram, ngramCount + 1);
         }
 
-        for(int i = 0; i <= words.size() - (n - 1); i++){
+        for(int i = 0; (n != 1) && i <= words.size() - (n - 1); i++){
             String nMinusOneGram = getNGram(words, i, n - 1);
             int nMinusOneGramCount = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
             nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
@@ -109,16 +117,24 @@ public class Homework1 {
         for(String sentence : sentences) {
             fulltext += cleanSentence(sentence,n);
         }
+        ArrayList<String> result = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
+        wordCount = result.size();
 
-        System.out.println("Building huge-ass array");
-        return new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
+        return result;
     }
 
+    /**
+     * Seperates punctuation marks so they will be counted as words;
+     *
+     * @param sentence
+     * @param n
+     * @return
+     */
     public static String cleanSentence(String sentence, int n) {
         System.out.println("cleanSentence called");
         String prefix = "";
         for(int i = 0; i < n - 1; i++) {
-            prefix += "<B> ";
+            prefix += "<S> ";
         }
         //TODO: string replaces are a bit slow
         sentence = prefix + sentence;
@@ -128,6 +144,7 @@ public class Homework1 {
         sentence = sentence.replace("\"", " \" ");
         sentence = sentence.replace("(" , " ( ");
         sentence = sentence.replace(")", " ) ");
+        sentence = sentence.replace(":", " : ");
         return sentence;
     }
 
@@ -154,11 +171,17 @@ public class Homework1 {
      * @param ngram
      * @return double - conditional probability
      */
-    public static double probability(String ngram) {
+    public static double probability(String ngram, int n) {
+
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
         int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
-        String nMinusOneGram = ngram.substring(0, index);
-        double denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
+        double denominator = 1;
+        if (n == 1) {
+            denominator = wordCount;
+        } else {
+            String nMinusOneGram = ngram.substring(0, index);
+            denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
+        }
         return numerator / denominator;
     }
 
