@@ -9,7 +9,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 
-public class Homework1 {
+public class homework1 {
 
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
@@ -22,7 +22,7 @@ public class Homework1 {
 
     public static void main(String[] args) {
 
-        Homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
+        homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
 
         buildProbabilityTable(LANGUAGE_MODEL_ORDER);
 
@@ -41,12 +41,13 @@ public class Homework1 {
         //TODO Only workds for bigram not N-gram (fix later)
         Iterator<Entry<String, Integer>> itr1 = nMinusOneGrams.entrySet().iterator();
         Iterator<Entry<String, Integer>> itr2 = nMinusOneGrams.entrySet().iterator();
+        int V=ngrams.size();
         while(itr1.hasNext()) {
             Entry<String, Integer> key1 = itr1.next();
             while(itr2.hasNext()) {
                 Entry<String, Integer> key2 = itr2.next();
                 String grams = key1.getKey() + " " + key2.getKey();
-                double prob = probability(grams, n);
+                double prob = probability(grams, n,V);
                 bigram.put(grams, prob);
             }
             itr2 = nMinusOneGrams.entrySet().iterator();
@@ -170,7 +171,7 @@ public class Homework1 {
      * @param ngram
      * @return double - conditional probability
      */
-    public static double probability(String ngram, int n) {
+    public static double probability(String ngram, int n,int V) {
 
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
         int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
@@ -181,7 +182,7 @@ public class Homework1 {
             String nMinusOneGram = ngram.substring(0, index);
             denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
         }
-        return numerator / denominator;
+        return (numerator +1) / (denominator+V);
     }
 
     /**
