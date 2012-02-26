@@ -35,15 +35,21 @@ public class Homework1 {
         //For author prediction, each line corresponds to a training example
         for(String line : lines) {
             String[] split = line.split("\t");
+            String authorName = split[0];
+            String email = split[1];
+
             ArrayList<String> text = new ArrayList<String>();
-            text.add(split[1]);
+            text.add(email);
             ArrayList<String> words = getWords(getSentences(text), n);
-
             //Find the right author for this example
-            if(authors.get(split[0]) != null) {
-
+            LanguageModel m = authors.get(authorName);
+            if(m == null) {
+                m = new LanguageModel();
+                findNGrams(words, n, m);
+                authors.put(authorName, m);
             } else {
-
+                //TODO: will this properly update?
+                findNGrams(words, n, m);
             }
         }
     }
