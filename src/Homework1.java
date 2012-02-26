@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -14,23 +15,51 @@ public class Homework1 {
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
     private static int wordCount = 0;
-
+    private static int V=ngrams.size();
     //private static HashMap<String, Double> unigram = new HashMap<String, Double>();
     private static HashMap<String, Double> bigram = new HashMap<String, Double>();
 
     private static final int LANGUAGE_MODEL_ORDER = 2;
-
+    private static final int K_SAMPLE_REJECT = 2;
+    
     public static void main(String[] args) {
 
         Homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
 
         buildProbabilityTable(LANGUAGE_MODEL_ORDER);
-
+    	
+        randomSentenceGenerator(K_SAMPLE_REJECT, LANGUAGE_MODEL_ORDER);
+    	
         //System.out.println(ngrams);
         //System.out.println(nMinusOneGrams);
-        System.out.println(bigram);
+        //System.out.println(bigram);
     }
+    
+    public static void randomSentenceGenerator(int k, int n){
+    	Random generator = new Random(); 
+    	int pos = 0, kValue=0;
+    	double prob = 0;
+    	
+    	String sentence = "";
+    	Object[] words = ngrams.keySet().toArray();
 
+    	while(kValue < k){
+    		pos = generator.nextInt(ngrams.size());
+    		prob  = generator.nextDouble();
+    		String word = words[pos].toString();
+
+    		if(prob <= probability(word,n, V)){
+	    		if(word.contains("."))
+	    			kValue++;
+	    		else
+	    			sentence += word + " ";
+	    		 
+	    		if(kValue == k)
+	    			sentence += word;
+    		}
+    	}
+    	System.out.println(sentence);
+    }
     /**
      * Constructs probability tables
      * @param n - order of the language model
@@ -41,7 +70,7 @@ public class Homework1 {
         //TODO Only workds for bigram not N-gram (fix later)
         Iterator<Entry<String, Integer>> itr1 = nMinusOneGrams.entrySet().iterator();
         Iterator<Entry<String, Integer>> itr2 = nMinusOneGrams.entrySet().iterator();
-        int V=ngrams.size();
+        
         while(itr1.hasNext()) {
             Entry<String, Integer> key1 = itr1.next();
             while(itr2.hasNext()) {
