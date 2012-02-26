@@ -9,9 +9,6 @@ import java.util.regex.Pattern;
 
 public class Homework1 {
 
-    private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
-    private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
-
     //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
@@ -25,19 +22,23 @@ public class Homework1 {
     }
 
     /**
-     * Performs the experiments for Homework1, part 5: Email Authot Prediction
+     * Performs the experiments for Homework1, part 5: Email Author Prediction
      * @param filename
      */
     public static void authorPrediction(String trainingSetFilename, String testSetFilename, int n) {
         //TODO: Finish me
 
         //Maps from Author to language model
-        HashMap<String, HashMap<String, Integer>> authors = new HashMap<String, HashMap<String, Integer>>();
+        HashMap<String, LanguageModel> authors = new HashMap<String, LanguageModel>();
 
         ArrayList<String> lines = getLines(trainingSetFilename);
         //For author prediction, each line corresponds to a training example
         for(String line : lines) {
             String[] split = line.split("\t");
+            ArrayList<String> text = new ArrayList<String>();
+            text.add(split[1]);
+            ArrayList<String> words = getWords(getSentences(text), n);
+
             //Find the right author for this example
             if(authors.get(split[0]) != null) {
 
@@ -45,9 +46,6 @@ public class Homework1 {
 
             }
         }
-        ArrayList<String> sentences = getSentences(lines);
-        ArrayList<String> words = getWords(sentences, n);
-        findNGrams(words, n);
     }
 
     /**
@@ -57,12 +55,13 @@ public class Homework1 {
     public static void randomSentenceGeneration(String trainingSetFilename, int k, int n) {
         //TODO: Finish Me
 
+        LanguageModel m = new LanguageModel();
         //Example of reading files:
         ArrayList<String> lines = getLines(trainingSetFilename);
         ArrayList<String> sentences = getSentences(lines);
         ArrayList<String> words = getWords(sentences, n);
-        findNGrams(words, n);
-        randomSentenceGenerator(k, n);
+        findNGrams(words, n, m);
+        randomSentenceGenerator(k, n, m);
     }
 
     /**
@@ -73,21 +72,21 @@ public class Homework1 {
      * @return
      * @
      */
-    public static void randomSentenceGenerator(int k, int n) {
+    public static void randomSentenceGenerator(int k, int n, LanguageModel m) {
     	System.out.println("Generating Random Sentence");
     	Random generator = new Random();
     	int pos = 0, kValue=0;
     	double prob = 0;
 
     	String sentence = "";
-    	Object[] words = ngrams.keySet().toArray();
+    	Object[] words = m.ngrams.keySet().toArray();
 
     	while(kValue < k){
-    		pos = generator.nextInt(ngrams.size());
+    		pos = generator.nextInt(m.ngrams.size());
     		prob  = generator.nextDouble();
     		String word = words[pos].toString();
 
-    		if(prob <= probability(word,n)){
+    		if(prob <= m.probability(word,n)){
 	    		if(word.contains("."))
 	    			kValue++;
 	    		else
@@ -141,19 +140,19 @@ public class Homework1 {
      * @param filename - Name of file to load words from
      * @param n - Order of the language model
      */
-    public static void findNGrams(ArrayList<String> words, int n) {
+    public static void findNGrams(ArrayList<String> words, int n, LanguageModel m) {
         System.out.println("Building word frequency tables");
 
         for(int i = 0; i < words.size() - (n - 1); i++) {
             String ngram = getNGram(words, i, n);
-            int ngramCount = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
-            ngrams.put(ngram, ngramCount + 1);
+            int ngramCount = m.ngrams.get(ngram) == null ? 0 : m.ngrams.get(ngram);
+            m.ngrams.put(ngram, ngramCount + 1);
         }
 
         for(int i = 0; (n != 1) && i <= words.size() - (n - 1); i++){
             String nMinusOneGram = getNGram(words, i, n - 1);
-            int nMinusOneGramCount = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
-            nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
+            int nMinusOneGramCount = m.nMinusOneGrams.get(nMinusOneGram) == null ? 0 : m.nMinusOneGrams.get(nMinusOneGram);
+            m.nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
         }
     }
 
@@ -217,64 +216,5 @@ public class Homework1 {
             else
                 ngram += words.get(j) + " ";
         return ngram;
-    }
-
-    /**
-     * Computes the cumulative word frequency out of a frequency table
-     * @param frequencyTable
-     * @return
-     */
-    public static int wordCount(HashMap<String, Integer> frequencyTable) {
-        int count = 0;
-        for(Integer freq : frequencyTable.values())
-            count += freq;
-        return count;
-    }
-
-    /**
-     * Finds the conditional probability of the last word in the string, given the previous words
-     * @param ngram
-     * @return double - conditional probability
-     */
-    public static double probability(String ngram, int n) {
-        double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
-        int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
-        double denominator = 1;
-        if (n == 1) {
-            denominator = wordCount(ngrams);
-        } else {
-            String nMinusOneGram = ngram.substring(0, index);
-            denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
-        }
-        return (numerator + 1) / (denominator + ngrams.size());
-    }
-
-    /**
-     * Computes the total probability of a string, given a language model
-     * Used for perplexity and author prediction
-     * @param string - The string to find the probability of
-     * @param probabilityTable - A particular language model to compute strings from
-     * @param n - order of the language model (i.e. unigrams, bigrams, etc)
-     */
-    public static double probabilityOfDocument(ArrayList<String> sentences, HashMap<String, Double> probabilityTable, int n) {
-        //TODO: Look up probability of first n words
-        //TODO: Consider log probabilities to avoid underflow
-        ArrayList<String> words = getWords(sentences, n);
-        double probability = 1.0;
-        for(int i = 0; i < words.size() - n; i++) {
-            probability *= probabilityTable.get(getNGram(words, i, n));
-        }
-        return probability;
-    }
-
-    /**
-     * Finds the perplexity of a document given a language model
-     * @param string
-     * @param probabilityTable
-     * @param n
-     * @return
-     */
-    public static double perplexity(ArrayList<String> sentences, HashMap<String, Double> probabilityTable, int n) {
-        return Math.pow(1 / probabilityOfDocument(sentences, probabilityTable, n), 1.0 / n);
     }
 }
