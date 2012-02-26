@@ -1,8 +1,11 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 
 class LanguageModel {
+
+    public HashSet<String> words = new HashSet<String>();
     public HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     public HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
 
@@ -52,8 +55,6 @@ class LanguageModel {
      * @param n - order of the language model (i.e. unigrams, bigrams, etc)
      */
     public double probabilityOfDocument(ArrayList<String> words, int n) {
-        //TODO: Look up probability of first n words
-        //TODO: Consider log probabilities to avoid underflow
         double probability = 1.0;
         for(int i = 0; i < words.size() - n; i++) {
             double logProb = Math.log(probability(Homework1.getNGram(words, i, n), n, true));
@@ -69,7 +70,7 @@ class LanguageModel {
      * @param n
      * @return
      */
-    public double perplexity(ArrayList<String> sentences,  int n) {
+    public double perplexity(ArrayList<String> sentences,  int n) { //TODO: Make me work
         return Math.pow(1 / probabilityOfDocument(sentences, n), 1.0 / n);
     }
 };
