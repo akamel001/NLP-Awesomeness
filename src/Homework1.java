@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -28,9 +29,9 @@ public class Homework1 {
     public static void authorPrediction(String trainingSetFilename, String testSetFilename, int n) {
         //TODO: Finish me
 
-        //Maps from Author to language model
         HashMap<String, LanguageModel> authors = new HashMap<String, LanguageModel>();
 
+        //Train
         ArrayList<String> lines = getLines(trainingSetFilename);
         //For author prediction, each line corresponds to a training example
         for(String line : lines) {
@@ -52,6 +53,35 @@ public class Homework1 {
                 findNGrams(words, n, m);
             }
         }
+
+        //Test
+        lines = getLines(testSetFilename);
+        int numCorrect = 0;
+        for(String line : lines) {
+            String[] split = line.split("\t");
+            String authorName = split[0];
+            String email = split[1];
+
+            ArrayList<String> text = new ArrayList<String>();
+            text.add(email);
+            ArrayList<String> words = getWords(getSentences(text), n);
+
+            double bestProb = Double.NEGATIVE_INFINITY;
+            String bestAuthor = "";
+            //find the most probable author
+            for(Map.Entry<String, LanguageModel> entry : authors.entrySet()) {
+                double probability = entry.getValue().probabilityOfDocument(words, n);
+                if(probability > bestProb) {
+                    bestProb = probability;
+                    bestAuthor = entry.getKey();
+                }
+            }
+            if(bestAuthor.equals(authorName)) {
+                numCorrect++;
+            }
+        }
+        double accuracy = numCorrect / lines.size();
+        System.out.println("Accuracy:" + accuracy);
     }
 
     /**
