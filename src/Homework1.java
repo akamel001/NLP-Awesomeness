@@ -20,9 +20,9 @@ public class Homework1 {
     private static final int SENTENCE_WORD_LIMIT = 25;
 
     public static void main(String[] args) {
-        randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+        //randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        //authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
+        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/train.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**
@@ -52,7 +52,6 @@ public class Homework1 {
                 findNGrams(words, n, m);
                 authors.put(authorName, m);
             } else {
-                //TODO: will this properly update?
                 findNGrams(words, n, m);
             }
         }
@@ -83,7 +82,7 @@ public class Homework1 {
                 numCorrect++;
             }
         }
-        double accuracy = numCorrect / lines.size();
+        double accuracy = (double)numCorrect / lines.size();
         System.out.println("Accuracy:" + accuracy);
     }
 
@@ -125,19 +124,19 @@ public class Homework1 {
     		prob  = generator.nextDouble();
     		String word = words[pos].toString();
 
-    		if(prob <= m.probability(word,n)){
+    		if(prob <= m.probability(word,n,false)){
 	    		if(word.endsWith(".")){
 	    			kValue++;
 	    			if(kValue == k)
 		    			sentence += word;
 	    			continue;
 	    		}
-	    		
+
 				if(wordsAdded <= wLimit){
 	    			sentence += word + " ";
 	    			wordsAdded++;
 				}
-	    	
+
     		}
     	}
     	System.out.println(sentence);
@@ -156,9 +155,9 @@ public class Homework1 {
             scanner = new Scanner(new FileInputStream(filename));
 
             scanner.useDelimiter(Pattern.compile(DELIMETER_PATTERN));
-            while (scanner.hasNextLine()) 
+            while (scanner.hasNextLine())
                 sentences.add(scanner.nextLine() + ".");
-            
+
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
         }
@@ -174,14 +173,14 @@ public class Homework1 {
         BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.US);
         ArrayList<String> sentences = new ArrayList<String>();
     	String fulltext = "";
-    	
+
         for(String line : lines) {
             fulltext += line;
         }
-        
+
         iterator.setText(fulltext);
         int start = iterator.first();
-        
+
         for (int end = iterator.next();
             end != BreakIterator.DONE;
             start = end, end = iterator.next()) {
@@ -226,7 +225,7 @@ public class Homework1 {
         for(String sentence : sentences) {
             fulltext += cleanSentence(sentence,n);
         }
-        
+
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
         System.out.println("Removing Spaces");
         while(words.remove("")); //Eliminate multiple consecutive spaces

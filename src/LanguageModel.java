@@ -23,7 +23,7 @@ class LanguageModel {
      * @param ngram
      * @return double - conditional probability
      */
-    public double probability(String ngram, int n) {
+    public double probability(String ngram, int n, boolean useSmoothing) {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
         int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
         double denominator = 1;
@@ -33,11 +33,19 @@ class LanguageModel {
             String nMinusOneGram = ngram.substring(0, index);
             denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
         }
-        return (numerator + 1) / (denominator + ngrams.size());
+        if(useSmoothing) {
+            return (numerator + 1) / (denominator + ngrams.size());
+        } else {
+            return numerator / denominator;
+        }
     }
 
     /**
      * Computes the total probability of a string, given a language model
+     *
+     * ----------> NOTE: USES LOG PROBABILITIES! <------------------
+     * May be inaccurate in other contexts
+     *
      * Used for perplexity and author prediction
      * @param string - The string to find the probability of
      * @param probabilityTable - A particular language model to compute strings from
@@ -48,7 +56,8 @@ class LanguageModel {
         //TODO: Consider log probabilities to avoid underflow
         double probability = 1.0;
         for(int i = 0; i < words.size() - n; i++) {
-            probability *= probability(Homework1.getNGram(words, i, n), n);
+            double logProb = Math.log(probability(Homework1.getNGram(words, i, n), n, true));
+            probability += logProb;
         }
         return probability;
     }
