@@ -156,10 +156,9 @@ public class Homework1 {
             scanner = new Scanner(new FileInputStream(filename));
 
             scanner.useDelimiter(Pattern.compile(DELIMETER_PATTERN));
-            while (scanner.hasNextLine()) {
-                //System.out.println(scanner.nextLine() + ".");
+            while (scanner.hasNextLine()) 
                 sentences.add(scanner.nextLine() + ".");
-            }
+            
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
         }
@@ -220,11 +219,14 @@ public class Homework1 {
      * @return
      */
     public static ArrayList<String> getWords(ArrayList<String> sentences, int n) {
-        String fulltext = "";
         System.out.println("Breaking sentences into words");
+
+    	String fulltext = "";
+
         for(String sentence : sentences) {
             fulltext += cleanSentence(sentence,n);
         }
+        
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
         System.out.println("Removing Spaces");
         while(words.remove("")); //Eliminate multiple consecutive spaces
