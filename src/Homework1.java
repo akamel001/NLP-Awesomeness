@@ -1,8 +1,10 @@
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -14,12 +16,13 @@ public class Homework1 {
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
     private static final int LANGUAGE_MODEL_ORDER = 2;
-    private static final int K_SAMPLE_REJECT = 2;
+    private static final int K_SAMPLE_REJECT = 1;
+    private static final int SENTENCE_WORD_LIMIT = 25;
 
     public static void main(String[] args) {
-        //randomSentenceGeneration("data/Dataset3/Train.txt", K_SAMPLE_REJECT, LANGUAGE_MODEL_ORDER);
+        randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
+        //authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**
@@ -88,7 +91,7 @@ public class Homework1 {
      * Performs the experiments for Homework1, part 2: Random Sentence Generation
      * @param filename
      */
-    public static void randomSentenceGeneration(String trainingSetFilename, int k, int n) {
+    public static void randomSentenceGeneration(String trainingSetFilename, int k, int wLimit, int n) {
         //TODO: Finish Me
 
         LanguageModel m = new LanguageModel();
@@ -97,7 +100,7 @@ public class Homework1 {
         ArrayList<String> sentences = getSentences(lines);
         ArrayList<String> words = getWords(sentences, n);
         findNGrams(words, n, m);
-        randomSentenceGenerator(k, n, m);
+        randomSentenceGenerator(k, n, wLimit, m);
     }
 
     /**
@@ -108,10 +111,10 @@ public class Homework1 {
      * @return
      * @
      */
-    public static void randomSentenceGenerator(int k, int n, LanguageModel m) {
+    public static void randomSentenceGenerator(int k, int n, int wLimit, LanguageModel m) {
     	System.out.println("Generating Random Sentence");
     	Random generator = new Random();
-    	int pos = 0, kValue=0;
+    	int pos = 0, kValue=0, wordsAdded=0;
     	double prob = 0;
 
     	String sentence = "";
@@ -123,13 +126,18 @@ public class Homework1 {
     		String word = words[pos].toString();
 
     		if(prob <= m.probability(word,n)){
-	    		if(word.contains("."))
+	    		if(word.endsWith(".")){
 	    			kValue++;
-	    		else
+	    			if(kValue == k)
+		    			sentence += word;
+	    			continue;
+	    		}
+	    		
+				if(wordsAdded <= wLimit){
 	    			sentence += word + " ";
-
-	    		if(kValue == k)
-	    			sentence += word;
+	    			wordsAdded++;
+				}
+	    	
     		}
     	}
     	System.out.println(sentence);
@@ -164,11 +172,24 @@ public class Homework1 {
      * @param n
      */
     public static ArrayList<String> getSentences(ArrayList<String> lines) {
-        String fulltext = "";
+        BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.US);
+        ArrayList<String> sentences = new ArrayList<String>();
+    	String fulltext = "";
+    	
         for(String line : lines) {
             fulltext += line;
         }
-        return new ArrayList<String>(Arrays.asList(fulltext.split("[.][^12345890]")));
+        
+        iterator.setText(fulltext);
+        int start = iterator.first();
+        
+        for (int end = iterator.next();
+            end != BreakIterator.DONE;
+            start = end, end = iterator.next()) {
+          sentences.add(fulltext.substring(start,end));
+        }
+        return sentences;
+        //return new ArrayList<String>(Arrays.asList(fulltext.split("[.][^12345890]")));
     }
 
     /**
@@ -220,12 +241,12 @@ public class Homework1 {
      */
     public static String cleanSentence(String sentence, int n) {
         System.out.println("cleanSentence called");
-        String prefix = "";
-        for(int i = 0; i < n - 1; i++) {
-            prefix += "<S> ";
-        }
-        //TODO: string replaces are a bit slow
-        sentence = prefix + sentence;
+//        String prefix = "";
+//        for(int i = 0; i < n - 1; i++) {
+//            prefix += "<S> ";
+//        }
+//        //TODO: string replaces are a bit slow
+//        sentence = prefix + sentence;
         //sentence = sentence.replace("." , " .");
         sentence = sentence.replace("," , " , ");
         sentence = sentence.replace("\"", " \" ");
