@@ -2,11 +2,9 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -218,23 +216,19 @@ public class Homework1 {
      * @param n
      */
     public static ArrayList<String> getSentences(ArrayList<String> lines) {
-        BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.US);
-        ArrayList<String> sentences = new ArrayList<String>();
         String fulltext = "";
 
         for(String line : lines) {
-            fulltext += line;
+            fulltext += line + " ";
         }
 
-        iterator.setText(fulltext);
-        int start = iterator.first();
+        ArrayList<String> noPeriods =  new ArrayList<String>(Arrays.asList(fulltext.split("[.][^12345890]")));
 
-        for (int end = iterator.next();
-                end != BreakIterator.DONE;
-                start = end, end = iterator.next()) {
-            sentences.add(fulltext.substring(start,end));
-        }
-        return sentences;
+        //Put periods on the end
+        for(int i = 0; i < noPeriods.size(); i++)
+            noPeriods.set(i, noPeriods.get(i) + " . ");
+
+        return noPeriods;
     }
 
     /**
@@ -310,7 +304,7 @@ public class Homework1 {
 
         //TOOD: Any other cases that make sense?
         sentence = getPrefix(n) + sentence;
-        //sentence = sentence.replace("." , " .");
+        sentence = sentence.replace("." , " . ");
         sentence = sentence.replace("," , " , ");
         sentence = sentence.replace("\"", " \" ");
         sentence = sentence.replace("\"", " \" ");

@@ -38,8 +38,6 @@ class LanguageModel {
             //System.out.println(nMinusOneGram);
             denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
         }
-        //System.out.println("numerator: " + numerator);
-        //System.out.println("denominator:" + denominator);
         if(useSmoothing) {
             return (numerator + 1) / (denominator + ngrams.size());
         } else {
