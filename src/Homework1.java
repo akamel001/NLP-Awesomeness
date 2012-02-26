@@ -1,5 +1,7 @@
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,14 +24,14 @@ public class Homework1 {
     public static void main(String[] args) {
         //randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/train.txt", LANGUAGE_MODEL_ORDER);
+        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**
      * Performs the experiments for Homework1, part 5: Email Author Prediction
      * @param filename
      */
-    public static void authorPrediction(String trainingSetFilename, String testSetFilename, int n) {
+    public static void authorPrediction(String trainingSetFilename, String validationSetFilename, String testSetFilename, int n) {
         //TODO: Finish me
 
         HashMap<String, LanguageModel> authors = new HashMap<String, LanguageModel>();
@@ -56,8 +58,17 @@ public class Homework1 {
             }
         }
 
+        ArrayList<String> predictions = new ArrayList<String>();
+        double accuracy = testAuthorPrediction(validationSetFilename, authors, predictions, n);
+        testAuthorPrediction(testSetFilename, authors, predictions, n);
+        System.out.println("Accuracy:" + accuracy);
+
+        writeFile(predictions);
+    }
+
+    public static double testAuthorPrediction(String testSetFilename, HashMap<String, LanguageModel> authors, ArrayList<String> predictions, int n) {
         //Test
-        lines = getLines(testSetFilename);
+        ArrayList<String> lines = getLines(testSetFilename);
         int numCorrect = 0;
         for(String line : lines) {
             String[] split = line.split("\t");
@@ -76,14 +87,29 @@ public class Homework1 {
                 if(probability > bestProb) {
                     bestProb = probability;
                     bestAuthor = entry.getKey();
+
                 }
             }
+            predictions.add(bestAuthor);
             if(bestAuthor.equals(authorName)) {
                 numCorrect++;
             }
         }
-        double accuracy = (double)numCorrect / lines.size();
-        System.out.println("Accuracy:" + accuracy);
+        return (double)numCorrect / lines.size();
+    }
+
+    public static void writeFile(ArrayList<String> predictions) {
+        try{
+            // Create file
+            FileWriter fstream = new FileWriter("kaggle.txt");
+            BufferedWriter out = new BufferedWriter(fstream);
+            for(String prediction : predictions) {
+                out.write(prediction + "\n");
+            }
+            out.close();
+        } catch (Exception e) {
+            System.err.println("Error writing kaggle.txt: " + e.getMessage());
+        }
     }
 
     /**
