@@ -10,16 +10,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class Homework1 {
 
     //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
-    private static final int LANGUAGE_MODEL_ORDER = 5;
+    private static final int LANGUAGE_MODEL_ORDER = 2;
     private static final int K_SAMPLE_REJECT = 1;
-    private static final int SENTENCE_WORD_LIMIT = 25;
+    private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
         randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
@@ -55,6 +54,7 @@ public class Homework1 {
                 findNGrams(words, n, m);
             }
         }
+
 
         ArrayList<String> predictions = new ArrayList<String>();
         double accuracy = testAuthorPrediction(validationSetFilename, authors, predictions, n);
@@ -136,14 +136,13 @@ public class Homework1 {
     }
 
     /**
-     *
+     * Returns the last n words from the string
      */
     public static String getLastWords(String string, int n) {
         String[] split = string.split(" ");
         String words = "";
         for(int i = split.length - n; i < split.length; i++) {
-            if(i == split.length - n)
-                words += split[i] + " ";
+            words += split[i] + " ";
         }
         return words;
     }
@@ -158,37 +157,38 @@ public class Homework1 {
      * @
      */
     public static void randomSentenceGenerator(int k, int n, int wLimit, LanguageModel m) {
-    	System.out.println("Generating Random Sentence");
-    	Random generator = new Random();
-    	int pos = 0, kValue = 0, wordsAdded = 0;
-    	double prob = 0;
+        System.out.println("Generating Random Sentence");
+        Random generator = new Random();
+        int pos = 0, kValue = 0, wordsAdded = 0;
+        double prob = 0;
 
-    	//Use prefix to make sure sentence starts with the right words
-    	String sentence = getPrefix(n);
-    	Object[] words = m.words.toArray();
+        //Use prefix to make sure sentence starts with the right words
+        String sentence = getPrefix(n);
+        Object[] words = m.words.toArray();
 
-    	while(kValue < k) {
-    		pos = generator.nextInt(m.words.size());
-    		prob = generator.nextDouble();
-    		String word = words[pos].toString();
-    		String lastWords = getLastWords(sentence, n-1);
+        while(kValue < k) {
+            pos = generator.nextInt(m.words.size());
+            prob = generator.nextDouble();
+            String word = words[pos].toString();
+            String lastWords = getLastWords(sentence, n-1);
 
-    		if(prob <= m.probability(lastWords + word, n, false)) {
-	    		if(word.endsWith(".")) {
-	    			kValue++;
-	    			if(kValue == k)
-		    			sentence += word;
-	    			continue;
-	    		}
+            if(prob <= m.probability(lastWords + word, n, false)) {
+                if(word.endsWith(".")) {
+                    kValue++;
+                    if(kValue == k)
+                        sentence += word;
+                    continue;
+                }
 
-				if(wordsAdded <= wLimit) {
-	    			sentence += word + " ";
-	    			wordsAdded++;
-				}
-
-    		}
-    	}
-    	System.out.println(sentence);
+                sentence += word + " ";
+                wordsAdded++;
+                if(wLimit != -1 && wordsAdded >= wLimit) {
+                    sentence += ".";
+                    break;
+                }
+            }
+        }
+        System.out.println(sentence);
     }
 
     /**
@@ -203,9 +203,8 @@ public class Homework1 {
         try {
             scanner = new Scanner(new FileInputStream(filename));
 
-            scanner.useDelimiter(Pattern.compile(DELIMETER_PATTERN));
             while (scanner.hasNextLine())
-                sentences.add(scanner.nextLine() + ".");
+                sentences.add(scanner.nextLine() + " ");
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
@@ -221,7 +220,7 @@ public class Homework1 {
     public static ArrayList<String> getSentences(ArrayList<String> lines) {
         BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.US);
         ArrayList<String> sentences = new ArrayList<String>();
-    	String fulltext = "";
+        String fulltext = "";
 
         for(String line : lines) {
             fulltext += line;
@@ -231,9 +230,9 @@ public class Homework1 {
         int start = iterator.first();
 
         for (int end = iterator.next();
-            end != BreakIterator.DONE;
-            start = end, end = iterator.next()) {
-          sentences.add(fulltext.substring(start,end));
+                end != BreakIterator.DONE;
+                start = end, end = iterator.next()) {
+            sentences.add(fulltext.substring(start,end));
         }
         return sentences;
     }
@@ -261,6 +260,7 @@ public class Homework1 {
         for(int i = 0; i < words.size(); i++) {
             m.words.add(words.get(i));
         }
+        m.words.remove("<S>");
     }
 
     /**
@@ -272,10 +272,10 @@ public class Homework1 {
     public static ArrayList<String> getWords(ArrayList<String> sentences, int n) {
         System.out.println("Breaking sentences into words");
 
-    	String fulltext = "";
+        String fulltext = "";
 
         for(String sentence : sentences) {
-            fulltext += cleanSentence(sentence,n);
+            fulltext += cleanSentence(sentence, n) + " ";
         }
 
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));

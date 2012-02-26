@@ -34,8 +34,12 @@ class LanguageModel {
             denominator = wordCount(ngrams);
         } else {
             String nMinusOneGram = ngram.substring(0, index);
+            //System.out.println(ngram);
+            //System.out.println(nMinusOneGram);
             denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
         }
+        //System.out.println("numerator: " + numerator);
+        //System.out.println("denominator:" + denominator);
         if(useSmoothing) {
             return (numerator + 1) / (denominator + ngrams.size());
         } else {
@@ -70,7 +74,7 @@ class LanguageModel {
      * @param n
      * @return
      */
-    public double perplexity(ArrayList<String> sentences,  int n) { //TODO: Make me work
-        return Math.pow(1 / probabilityOfDocument(sentences, n), 1.0 / n);
+    public double perplexity(ArrayList<String> sentences,  int n) {
+        return probabilityOfDocument(sentences, n) * -1.0 / n;
     }
 };
