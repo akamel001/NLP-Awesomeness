@@ -17,9 +17,9 @@ public class Homework1 {
     private static final int K_SAMPLE_REJECT = 2;
 
     public static void main(String[] args) {
-        randomSentenceGeneration("data/Dataset3/Train.txt", K_SAMPLE_REJECT, LANGUAGE_MODEL_ORDER);
+        //randomSentenceGeneration("data/Dataset3/Train.txt", K_SAMPLE_REJECT, LANGUAGE_MODEL_ORDER);
 
-        //authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
+        authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**

@@ -3,8 +3,8 @@ import java.util.HashMap;
 
 
 class LanguageModel {
-    public HashMap<String, Integer> ngrams;
-    public HashMap<String, Integer> nMinusOneGrams;
+    public HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
+    public HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
 
     /**
      * Computes the cumulative word frequency out of a frequency table
