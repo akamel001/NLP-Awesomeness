@@ -3,70 +3,75 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-
-public class homework1 {
+public class Homework1 {
 
     private static HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     private static HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
-    private static int wordCount = 0;
 
-    //private static HashMap<String, Double> unigram = new HashMap<String, Double>();
-    private static HashMap<String, Double> bigram = new HashMap<String, Double>();
-
-    private static final int LANGUAGE_MODEL_ORDER = 2;
+    //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
+    private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
     public static void main(String[] args) {
-
-        homework1.findNGrams("data/EnronDataset/debug.txt", LANGUAGE_MODEL_ORDER);
-
-        buildProbabilityTable(LANGUAGE_MODEL_ORDER);
-
-        //System.out.println(ngrams);
-        //System.out.println(nMinusOneGrams);
-        System.out.println(bigram);
+        authorPrediction("data/EnronDataset/debug.txt", "data/EnronDataset/debug.txt", 2);
     }
 
     /**
-     * Constructs probability tables
-     * @param n - order of the language model
-     */
-    public static void buildProbabilityTable(int n) {
-        System.out.println("Constructing Probability Tables");
-
-        //TODO Only workds for bigram not N-gram (fix later)
-        Iterator<Entry<String, Integer>> itr1 = nMinusOneGrams.entrySet().iterator();
-        Iterator<Entry<String, Integer>> itr2 = nMinusOneGrams.entrySet().iterator();
-        int V=ngrams.size();
-        while(itr1.hasNext()) {
-            Entry<String, Integer> key1 = itr1.next();
-            while(itr2.hasNext()) {
-                Entry<String, Integer> key2 = itr2.next();
-                String grams = key1.getKey() + " " + key2.getKey();
-                double prob = probability(grams, n,V);
-                bigram.put(grams, prob);
-            }
-            itr2 = nMinusOneGrams.entrySet().iterator();
-        }
-    }
-
-    /**
-     * Reads a file, and returns sentences in an ArrayList.
+     * Performs the experiments for Homework1, part 5: Email Authot Prediction
      * @param filename
-     * @param n
      */
-    public static ArrayList<String> getSentences(String filename) {
+    public static void authorPrediction(String trainingSetFilename, String testSetFilename, int n) {
+        //TODO: Finish me
+
+        //Maps from Author to language model
+        HashMap<String, HashMap<String, Integer>> authors = new HashMap<String, HashMap<String, Integer>>();
+
+        ArrayList<String> lines = getLines(trainingSetFilename);
+        //For author prediction, each line corresponds to a training example
+        for(String line : lines) {
+            String[] split = line.split("\t");
+            //Find the right author for this example
+            if(authors.get(split[0]) != null) {
+
+            } else {
+
+            }
+        }
+        ArrayList<String> sentences = getSentences(lines);
+        ArrayList<String> words = getWords(sentences, n);
+        findNGrams(words, n);
+    }
+
+    /**
+     * Performs the experiments for Homework1, part 2: Random Sentence Generation
+     * @param filename
+     */
+    public static void randomSentenceGeneration(String trainingSetFilename, int n) {
+        //TODO: Finish Me
+
+        //Example of reading files:
+        ArrayList<String> lines = getLines(trainingSetFilename);
+        ArrayList<String> sentences = getSentences(lines);
+        ArrayList<String> words = getWords(sentences, n);
+        findNGrams(words, n);
+
+    }
+
+    /**
+     * Returns the lines of a file in an ArrayList
+     * @param filename
+     * @return
+     */
+    public static ArrayList<String> getLines(String filename) {
         System.out.println("Reading File:" + filename);
         Scanner scanner = null;
         ArrayList<String> sentences = new ArrayList<String>();
         try {
             scanner = new Scanner(new FileInputStream(filename));
-          //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
-            scanner.useDelimiter(Pattern.compile("[.][^12345890]"));
+
+            scanner.useDelimiter(Pattern.compile(DELIMETER_PATTERN));
             while (scanner.hasNextLine()) {
                 System.out.println(scanner.nextLine() + ".");
                 sentences.add(scanner.nextLine() + ".");
@@ -78,18 +83,24 @@ public class homework1 {
     }
 
     /**
+     * Goes through a list of lines and returns sentences in an ArrayList.
+     * @param filename
+     * @param n
+     */
+    public static ArrayList<String> getSentences(ArrayList<String> lines) {
+        String fulltext = "";
+        for(String line : lines) {
+            fulltext += line;
+        }
+        return new ArrayList<String>(Arrays.asList(fulltext.split("[.][^12345890]")));
+    }
+
+    /**
      * Reads through the test set to find n-grams, and stores them in a HashMap
      * @param filename - Name of file to load words from
      * @param n - Order of the language model
      */
-    public static void findNGrams(String filename, int n) {
-        ArrayList<String> sentences = getSentences(filename);
-        ArrayList<String> words = getWords(sentences, n);
-
-        System.out.println("Removing Spaces");
-
-        while(words.remove("")); //Eliminate multiple consecutive spaces
-
+    public static void findNGrams(ArrayList<String> words, int n) {
         System.out.println("Building word frequency tables");
 
         for(int i = 0; i < words.size() - (n - 1); i++) {
@@ -117,10 +128,11 @@ public class homework1 {
         for(String sentence : sentences) {
             fulltext += cleanSentence(sentence,n);
         }
-        ArrayList<String> result = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
-        wordCount = result.size();
+        ArrayList<String> words = new ArrayList<String>(Arrays.asList(fulltext.split(" |\n")));
+        System.out.println("Removing Spaces");
+        while(words.remove("")); //Eliminate multiple consecutive spaces
 
-        return result;
+        return words;
     }
 
     /**
@@ -167,22 +179,33 @@ public class homework1 {
     }
 
     /**
+     * Computes the cumulative word frequency out of a frequency table
+     * @param frequencyTable
+     * @return
+     */
+    public static int wordCount(HashMap<String, Integer> frequencyTable) {
+        int count = 0;
+        for(Integer freq : frequencyTable.values())
+            count += freq;
+        return count;
+    }
+
+    /**
      * Finds the conditional probability of the last word in the string, given the previous words
      * @param ngram
      * @return double - conditional probability
      */
-    public static double probability(String ngram, int n,int V) {
-
+    public static double probability(String ngram, int n) {
         double numerator = ngrams.get(ngram) == null ? 0 : ngrams.get(ngram);
         int index = (ngram.lastIndexOf(' ') == -1)? 0 : ngram.lastIndexOf(' ');
         double denominator = 1;
         if (n == 1) {
-            denominator = wordCount;
+            denominator = wordCount(ngrams);
         } else {
             String nMinusOneGram = ngram.substring(0, index);
             denominator = nMinusOneGrams.get(nMinusOneGram) == null ? 0 : nMinusOneGrams.get(nMinusOneGram);
         }
-        return (numerator +1) / (denominator+V);
+        return (numerator + 1) / (denominator + ngrams.size());
     }
 
     /**
