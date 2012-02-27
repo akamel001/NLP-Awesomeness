@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -138,6 +136,8 @@ public class Project1 {
         ArrayList<String> sentences = getSentences(lines);
         ArrayList<String> words = getWords(sentences, n);
         findNGrams(words, n, m);
+        
+        //TODO add loop to generate multiple sentences depending on variable 
         randomSentenceGenerator(k, n, wLimit, m);
     }
 
