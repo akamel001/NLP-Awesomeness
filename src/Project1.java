@@ -186,6 +186,7 @@ public class Project1 {
                 }
             }
         }
+        sentence = sentence.replaceAll("<S>", "");
         System.out.println(sentence);
     }
 
