@@ -60,7 +60,7 @@ class LanguageModel {
     public double probabilityOfDocument(ArrayList<String> words, int n) {
         double probability = 1.0;
         for(int i = 0; i < words.size() - n; i++) {
-            double logProb = Math.log(probability(Homework1.getNGram(words, i, n), n, true));
+            double logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
             probability += logProb;
         }
         return probability;

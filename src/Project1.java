@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
-public class Homework1 {
+public class Project1 {
 
     //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
