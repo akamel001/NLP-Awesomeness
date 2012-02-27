@@ -19,9 +19,9 @@ public class Homework1 {
     private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
-        randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+        //randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        //authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**
@@ -249,6 +249,10 @@ public class Homework1 {
             String nMinusOneGram = getNGram(words, i, n - 1);
             int nMinusOneGramCount = m.nMinusOneGrams.get(nMinusOneGram) == null ? 0 : m.nMinusOneGrams.get(nMinusOneGram);
             m.nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
+        }
+        
+        for(int i = 0; i < words.size(); i++) {
+            m.unigrams.put(words.get(i), m.unigrams.get(words.get(i)) + 1);
         }
 
         for(int i = 0; i < words.size(); i++) {

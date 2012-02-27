@@ -8,7 +8,8 @@ class LanguageModel {
     public HashSet<String> words = new HashSet<String>();
     public HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     public HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
-
+    public HashMap<String, Integer> unigrams = new HashMap<String, Integer>();
+    
     /**
      * Computes the cumulative word frequency out of a frequency table
      * @param frequencyTable
