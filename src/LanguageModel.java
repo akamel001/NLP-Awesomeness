@@ -33,14 +33,13 @@ class LanguageModel {
     	int smallestDistance = Integer.MAX_VALUE;
 
     	for(String key : this.unigrams.keySet()) {
-    		//System.out.println("Key - " + key + " " + ld.distance(word, key));
             if(ld.distance(word, key) < smallestDistance){
-            	//System.out.println("Found better match: " + key);
             	bestWord = key;
             	smallestDistance = ld.distance(word, key);
             }
         }
 
+    	System.out.println("Best word match: " + bestWord);
     	return bestWord;
     }
     /**
