@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-
-import sun.tools.tree.ThisExpression;
 
 
 class LanguageModel {
@@ -12,7 +9,7 @@ class LanguageModel {
     public HashMap<String, Integer> ngrams = new HashMap<String, Integer>();
     public HashMap<String, Integer> nMinusOneGrams = new HashMap<String, Integer>();
     public HashMap<String, Integer> unigrams = new HashMap<String, Integer>();
-    
+
     /**
      * Computes the cumulative word frequency out of a frequency table
      * @param frequencyTable
@@ -24,7 +21,7 @@ class LanguageModel {
             count += freq;
         return count;
     }
-    
+
     /**
      * Function that uses Levenshtein Distance to return the closest word matched
      * @param word
@@ -36,15 +33,15 @@ class LanguageModel {
     	int smallestDistance = Integer.MAX_VALUE;
 
     	for(String key : this.unigrams.keySet()) {
-    		System.out.println("Key - " + key + " " + ld.disctance(word, key));
-            if(ld.disctance(word, key) < smallestDistance){
-            	System.out.println("Found better match: " + key);
+    		//System.out.println("Key - " + key + " " + ld.distance(word, key));
+            if(ld.distance(word, key) < smallestDistance){
+            	//System.out.println("Found better match: " + key);
             	bestWord = key;
-            	smallestDistance = ld.disctance(word, key);
+            	smallestDistance = ld.distance(word, key);
             }
         }
-    	
-    	return bestWord;	
+
+    	return bestWord;
     }
     /**
      * Finds the conditional probability of the last word in the string, given the previous words
@@ -84,7 +81,20 @@ class LanguageModel {
     public double probabilityOfDocument(ArrayList<String> words, int n) {
         double probability = 1.0;
         for(int i = 0; i < words.size() - n; i++) {
-            double logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
+            double logProb;
+//            if(!this.words.contains(words.get(i + n - 1))) {
+//                logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
+//                System.out.println(logProb);
+//                String closest = closestWord(words.get(i + n - 1));
+//                System.out.println(words.get(i + n - 1));
+//                System.out.println(closest);
+//                logProb = Math.log(unigrams.get(closest) / (double)this.words.size());
+//                System.out.println(logProb);
+//                System.out.println(logProb);
+//                System.exit(0);
+//            } else {
+                  logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
+//            }
             probability += logProb;
         }
         return probability;

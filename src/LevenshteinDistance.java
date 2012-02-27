@@ -3,12 +3,12 @@
 public class LevenshteinDistance {
 
 	/**
-	 * Compares two strings and finds the Levenshtein Distance 
+	 * Compares two strings and finds the Levenshtein Distance
 	 * @param s First string
-	 * @param t Second string 
+	 * @param t Second string
 	 * @return Levenshtein distance between first and second string
 	 */
-	public int disctance (String s, String t) {
+	public int distance (String s, String t) {
 		int d[][]; // matrix
 		int n; // length of s
 		int m; // length of t
@@ -69,8 +69,8 @@ public class LevenshteinDistance {
 	}
 
 	/**
-	 * Helper function that returns minimum of three integers 
-	 * @param a 
+	 * Helper function that returns minimum of three integers
+	 * @param a
 	 * @param b
 	 * @param c
 	 * @return min(a,b,c)

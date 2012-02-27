@@ -21,9 +21,9 @@ public class Project1 {
     private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
-       randomSentenceGeneration("data/test", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+       //randomSentenceGeneration("data/test", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        //authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**
@@ -76,7 +76,9 @@ public class Project1 {
         //Test
         ArrayList<String> lines = getLines(testSetFilename);
         int numCorrect = 0;
+        int count = 0;
         for(String line : lines) {
+            System.out.println(count++);
             String[] split = line.split("\t");
             String authorName = split[0];
             String email = split[1];
@@ -110,14 +112,14 @@ public class Project1 {
     public static void writeFile(ArrayList<String> predictions) {
         try{
             // Create file
-            FileWriter fstream = new FileWriter("kaggle.txt");
+            FileWriter fstream = new FileWriter("kaggle.csv");
             BufferedWriter out = new BufferedWriter(fstream);
             for(String prediction : predictions) {
                 out.write(prediction + "\n");
             }
             out.close();
         } catch (Exception e) {
-            System.err.println("Error writing kaggle.txt: " + e.getMessage());
+            System.err.println("Error writing kaggle.csv: " + e.getMessage());
         }
     }
 
@@ -253,7 +255,7 @@ public class Project1 {
             int nMinusOneGramCount = m.nMinusOneGrams.get(nMinusOneGram) == null ? 0 : m.nMinusOneGrams.get(nMinusOneGram);
             m.nMinusOneGrams.put(nMinusOneGram, nMinusOneGramCount + 1);
         }
-        
+
         for(int i = 0; i < words.size(); i++) {
             String unigram = words.get(i);
             int unigramCount = m.unigrams.get(unigram) == null ? 0 : m.nMinusOneGrams.get(unigram);
@@ -322,7 +324,7 @@ public class Project1 {
         sentence = sentence.replace(":", " : ");
         return sentence;
     }
-    
+
     /**
      * Returns a string containing n words beginning from pos, space seperated
      * @param words The text to extract the n-gram from
