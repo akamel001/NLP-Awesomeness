@@ -1,4 +1,4 @@
-package nlpnew;
+
 
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -21,9 +21,9 @@ public class Project1 {
     private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
-       randomSentenceGeneration("data/EnronDataset/debug.txt", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+       randomSentenceGeneration("data/test", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+        //authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
     }
 
     /**

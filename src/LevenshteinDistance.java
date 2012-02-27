@@ -1,4 +1,5 @@
 
+
 public class LevenshteinDistance {
 
 	/**
@@ -7,7 +8,7 @@ public class LevenshteinDistance {
 	 * @param t Second string 
 	 * @return Levenshtein distance between first and second string
 	 */
-	public static int LD (String s, String t) {
+	public int disctance (String s, String t) {
 		int d[][]; // matrix
 		int n; // length of s
 		int m; // length of t

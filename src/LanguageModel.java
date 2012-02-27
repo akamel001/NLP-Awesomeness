@@ -3,6 +3,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import sun.tools.tree.ThisExpression;
+
 
 class LanguageModel {
 
@@ -23,18 +25,26 @@ class LanguageModel {
         return count;
     }
     
+    /**
+     * Function that uses Levenshtein Distance to return the closest word matched
+     * @param word
+     * @return best word matched
+     */
     public String closestWord(String word){
-		
-    	Iterator it = this.unigrams.entrySet().iterator();
-    	String closestWord = "";
-    	int smallestDistance = 0;
-    	
-    	while (it.hasNext()) {
-            
-            
-            //it.remove();
+		LevenshteinDistance ld = new LevenshteinDistance();
+    	String bestWord = "";
+    	int smallestDistance = Integer.MAX_VALUE;
+
+    	for(String key : this.unigrams.keySet()) {
+    		System.out.println("Key - " + key + " " + ld.disctance(word, key));
+            if(ld.disctance(word, key) < smallestDistance){
+            	System.out.println("Found better match: " + key);
+            	bestWord = key;
+            	smallestDistance = ld.disctance(word, key);
+            }
         }
-    	return word;	
+    	
+    	return bestWord;	
     }
     /**
      * Finds the conditional probability of the last word in the string, given the previous words
