@@ -109,15 +109,4 @@ class LanguageModel {
     public double perplexity(ArrayList<String> sentences,  int n) {
         return probabilityOfDocument(sentences, n) * -1.0 / n;
     }
-
-    /**
-     * Returns the perplexity of a test file
-     * @param filename
-     * @return
-     */
-    public double filePerplexity(String filename, int n) {
-        ArrayList<String> words = new ArrayList<String>();
-        Project1.findNGrams(words, n, this);
-        return this.probabilityOfDocument(words, n);
-    }
 };

@@ -19,14 +19,29 @@ public class Project1 {
     private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
-    	
+
     	String file = (args.length > 0)? args[0] : "data/test";
-    	
+
     	randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
         //authorPrediction(file, "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
 
+        //System.out.println(filePerplexity("data/Dataset3/Train.txt", "data/Dataset3/Test.txt", LANGUAGE_MODEL_ORDER));
     }
+
+    /**
+    *
+    * @param filename
+    * @return
+    */
+   public static double filePerplexity(String training, String testing, int n) {
+       LanguageModel m = new LanguageModel();;
+       ArrayList<String> trainingWords = Project1.getWords(Project1.getSentences(Project1.getLines(training)), n);
+       Project1.findNGrams(trainingWords, n, m);
+
+       ArrayList<String> testingWords = Project1.getWords(Project1.getSentences(Project1.getLines(testing)), n);
+       return m.probabilityOfDocument(testingWords, n);
+   }
 
 
     /**
@@ -137,8 +152,8 @@ public class Project1 {
         ArrayList<String> sentences = getSentences(lines);
         ArrayList<String> words = getWords(sentences, n);
         findNGrams(words, n, m);
-        
-        //TODO add loop to generate multiple sentences depending on variable 
+
+        //TODO add loop to generate multiple sentences depending on variable
         randomSentenceGenerator(k, n, wLimit, m);
     }
 
