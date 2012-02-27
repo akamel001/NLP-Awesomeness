@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 
 class LanguageModel {
@@ -21,7 +22,20 @@ class LanguageModel {
             count += freq;
         return count;
     }
-
+    
+    public String closestWord(String word){
+		
+    	Iterator it = this.unigrams.entrySet().iterator();
+    	String closestWord = "";
+    	int smallestDistance = 0;
+    	
+    	while (it.hasNext()) {
+            
+            
+            //it.remove();
+        }
+    	return word;	
+    }
     /**
      * Finds the conditional probability of the last word in the string, given the previous words
      * @param ngram

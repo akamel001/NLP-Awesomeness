@@ -322,7 +322,7 @@ public class Project1 {
         sentence = sentence.replace(":", " : ");
         return sentence;
     }
-
+    
     /**
      * Returns a string containing n words beginning from pos, space seperated
      * @param words The text to extract the n-gram from
