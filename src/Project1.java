@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,9 +19,13 @@ public class Project1 {
     private static final int SENTENCE_WORD_LIMIT = -1;
 
     public static void main(String[] args) {
-       //randomSentenceGeneration("data/test", K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+    	
+    	String file = (args.length > 0)? args[0] : "data/test";
+    	
+    	randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+        //authorPrediction(file, "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+
     }
 
 
@@ -135,6 +137,8 @@ public class Project1 {
         ArrayList<String> sentences = getSentences(lines);
         ArrayList<String> words = getWords(sentences, n);
         findNGrams(words, n, m);
+        
+        //TODO add loop to generate multiple sentences depending on variable 
         randomSentenceGenerator(k, n, wLimit, m);
     }
 
@@ -212,6 +216,7 @@ public class Project1 {
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found:" + filename);
+            System.exit(1);
         }
         return sentences;
     }
@@ -312,7 +317,7 @@ public class Project1 {
      * @return
      */
     public static String cleanSentence(String sentence, int n) {
-        System.out.println("cleanSentence called");
+        //System.out.println("cleanSentence called");
 
         //TOOD: Any other cases that make sense?
         sentence = getPrefix(n) + sentence;
