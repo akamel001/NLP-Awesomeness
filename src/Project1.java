@@ -11,9 +11,6 @@ import java.util.Scanner;
 
 public class Project1 {
 
-    //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
-    private static final String DELIMETER_PATTERN = "[.][^12345890]";
-
     private static final int LANGUAGE_MODEL_ORDER = 3;
     private static final int K_SAMPLE_REJECT = 1;
     private static final int SENTENCE_WORD_LIMIT = -1;
@@ -168,7 +165,10 @@ public class Project1 {
     }
 
     /**
-     * Returns the last n words from the string
+     * 
+     * @param string
+     * @param n
+     * @return
      */
     public static String getLastWords(String string, int n) {
         String[] split = string.split(" ");
@@ -340,8 +340,7 @@ public class Project1 {
     }
 
     /**
-     * Seperates punctuation marks so they will be counted as words;
-     *
+     * Separates punctuation marks so they will be counted as words
      * @param sentence
      * @param n
      * @return
