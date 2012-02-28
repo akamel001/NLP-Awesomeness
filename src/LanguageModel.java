@@ -82,15 +82,8 @@ class LanguageModel {
         for(int i = 0; i < words.size() - n; i++) {
             double logProb;
 //            if(!this.words.contains(words.get(i + n - 1))) {
-//                logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
-//                System.out.println(logProb);
 //                String closest = closestWord(words.get(i + n - 1));
-//                System.out.println(words.get(i + n - 1));
-//                System.out.println(closest);
 //                logProb = Math.log(unigrams.get(closest) / (double)this.words.size());
-//                System.out.println(logProb);
-//                System.out.println(logProb);
-//                System.exit(0);
 //            } else {
                   logProb = Math.log(probability(Project1.getNGram(words, i, n), n, true));
 //            }

@@ -14,7 +14,7 @@ public class Project1 {
     //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
-    private static final int LANGUAGE_MODEL_ORDER = 2;
+    private static final int LANGUAGE_MODEL_ORDER = 5;
     private static final int K_SAMPLE_REJECT = 1;
     private static final int SENTENCE_WORD_LIMIT = -1;
 
@@ -22,11 +22,11 @@ public class Project1 {
 
     	String file = (args.length > 0)? args[0] : "data/test";
 
-    	randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
+    	//randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
 
-        //authorPrediction(file, "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+        //authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
 
-        //System.out.println(filePerplexity("data/Dataset3/Train.txt", "data/Dataset3/Test.txt", LANGUAGE_MODEL_ORDER));
+        System.out.println(filePerplexity("data/Dataset3/Train.txt", "data/Dataset3/Test.txt", LANGUAGE_MODEL_ORDER));
     }
 
     /**
@@ -40,7 +40,7 @@ public class Project1 {
        Project1.findNGrams(trainingWords, n, m);
 
        ArrayList<String> testingWords = Project1.getWords(Project1.getSentences(Project1.getLines(testing)), n);
-       return m.probabilityOfDocument(testingWords, n);
+       return m.perplexity(testingWords, n);
    }
 
 
@@ -279,7 +279,7 @@ public class Project1 {
 
         for(int i = 0; i < words.size(); i++) {
             String unigram = words.get(i);
-            int unigramCount = m.unigrams.get(unigram) == null ? 0 : m.nMinusOneGrams.get(unigram);
+            int unigramCount = m.unigrams.get(unigram) == null ? 0 : m.unigrams.get(unigram);
             m.unigrams.put(words.get(i), unigramCount + 1);
         }
 
