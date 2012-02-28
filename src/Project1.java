@@ -14,28 +14,32 @@ public class Project1 {
     //End line with a period NOT FOLLOWED by a number (i.e. don't match 12.5)
     private static final String DELIMETER_PATTERN = "[.][^12345890]";
 
-    private static final int LANGUAGE_MODEL_ORDER = 2;
+    private static final int LANGUAGE_MODEL_ORDER = 3;
     private static final int K_SAMPLE_REJECT = 1;
     private static final int SENTENCE_WORD_LIMIT = -1;
-    private static final int SENTENCE_SAMPLE = 5;
+    private static final int SENTENCE_SAMPLE = 10;
 
     public static void main(String[] args) {
-    	//String file = (args.length > 0)? args[0] : "data/test";
-
-    	//randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER);
-
+    	
     	String file = (args.length > 0)? args[0] : "data/Dataset3/Train.txt";
 
     	randomSentenceGeneration(file, K_SAMPLE_REJECT, SENTENCE_WORD_LIMIT, LANGUAGE_MODEL_ORDER, SENTENCE_SAMPLE);
 
         //authorPrediction("data/EnronDataset/train.txt", "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
 
+    	
+        //authorPrediction(file, "data/EnronDataset/validation.txt", "data/EnronDataset/test.txt", LANGUAGE_MODEL_ORDER);
+
+
         //System.out.println(filePerplexity("data/Dataset3/Train.txt", "data/Dataset3/Test.txt", LANGUAGE_MODEL_ORDER));
     }
 
-    /**
-    *
-    * @param filename
+
+   /**
+    *  
+    * @param training
+    * @param testing
+    * @param n
     * @return
     */
    public static double filePerplexity(String training, String testing, int n) {
@@ -158,11 +162,9 @@ public class Project1 {
         ArrayList<String> words = getWords(sentences, n);
         findNGrams(words, n, m);
 
-        for(int i = 0; i < sentenceSample; i ++){
-            randomSentenceGenerator(k, n, wLimit, m);
-        }
+        for(int i = 0; i < sentenceSample; i ++)
+            randomSentenceGenerator(k, n, wLimit, m);      
 
-        System.out.println("Perplexity of document is " + m.perplexity(sentences, n));
     }
 
     /**

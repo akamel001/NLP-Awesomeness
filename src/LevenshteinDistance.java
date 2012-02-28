@@ -1,22 +1,16 @@
 
-
 public class LevenshteinDistance {
 
 	/**
-	 * Compares two strings and finds the Levenshtein Distance
+	 * Compares two strings and finds the Levenshtein Distance. This implementation was borrowed 
+	 * from the author listed below. A link has been used to reference the authors implementation 
 	 * @param s First string
 	 * @param t Second string
+	 * @author Michael Gilleland (http://www.merriampark.com/ld.htm)
 	 * @return Levenshtein distance between first and second string
 	 */
 	public int distance (String s, String t) {
-		int d[][]; // matrix
-		int n; // length of s
-		int m; // length of t
-		int i; // iterates through s
-		int j; // iterates through t
-		char s_i; // ith character of s
-		char t_j; // jth character of t
-		int cost; // cost
+		int d[][], n, m, i, j, s_i, t_j, cost; 
 
 		// Step 1
 		n = s.length ();
