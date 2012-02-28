@@ -7,23 +7,16 @@ To execute the program:
 	(ie. $java -classpath ../bin/ Project1 ../data/Dataset4/Train.txt)
 
 File notes: 
-	Project1.java contains all the global variables used to determine the state of 
-	things. The following describes the variables
+	Project1.java contains all the global variables used to determine the state of things. The following describes the variables
 
 	(LANGUAGE_MODEL_ORDER)
-	Is used to determine the n-gram model you want. For a bigram model set the
-	variable to 2. For trigram set the variable to 3. 
+	Is used to determine the n-gram model you want. For a bigram model set the variable to 2. For trigram set the variable to 3. 
 	
      	(K_SAMPLE_REJECT)
-	This variable is used to determine the number of times a period would get rejected
-	if chosen in the random sentence generator 
+	This variable is used to determine the number of times a period would get rejected if chosen in the random sentence generator 
 
 	(SENTENCE_WORD_LIMIT)
-	This variable is used to determine how many words get set in a sentence. Currently
-	its set to -1 so its disabled. Values above -1 determine the sentence size. 
+	This variable is used to determine how many words get set in a sentence. Currently its set to -1 so its disabled. Values above -1 determine the sentence size. 
 
     	(SENTENCE_SAMPLE) 
-	Used for optimization. Once the corpus has been tokenized and loaded in memory,
-	this variable determines how many sentences will be generated. So re-executing the
-	program to generate a sentence is not required. Set this variable to determine how
-	many random sentences will be generated. 
+	Used for optimization. Once the corpus has been tokenized and loaded in memory, this variable determines how many sentences will be generated. So re-executing the program to generate a sentence is not required. Set this variable to determine how many random sentences will be generated. 
