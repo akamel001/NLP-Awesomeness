@@ -1,1 +1,10 @@
-More to come...
+To execute the program:
+
+	* unzip files to a directory
+	* cd src
+	* java -classpath ../bin/ Project1 <dataset file> 
+	
+	(ie. $java -classpath ../bin/ Project1 ../data/Dataset4/Train.txt)
+
+
+
