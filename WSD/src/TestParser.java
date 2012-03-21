@@ -10,8 +10,6 @@ import com.google.common.collect.HashBiMap;
 public class TestParser extends Parser{
 	public void run(){
 		lines = getLines("wsd-data/test.data");
-		//createHashMap();
-		//writeHashMap();
 		loadHashMap();
 		writeCSV("testData");
 	}

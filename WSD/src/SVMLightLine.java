@@ -27,12 +27,14 @@ public class SVMLightLine {
 	public String toString() {
 		BiMap<Integer, String> inverseMap = wordMap.inverse();
 		StringBuilder myString = new StringBuilder(target + " ");
-		for(int i = 0; i < inverseMap.size() - 1; i++) {
+		for(int i = 0; i < inverseMap.size(); i++) {
 			Integer value = wordCounts.get(inverseMap.get(i));
-			myString.append(i + ":" + ((value == null) ? 0 : value) + " ");
+			
+			if(value == null)
+				continue;
+			else
+				myString.append(i + ":" + value + " ");
 		}
-		Integer value = wordCounts.get(inverseMap.get(inverseMap.size() - 1));
-		myString.append(inverseMap.size() - 1 + ":" + (value == null ? 0 : value));
 		return myString.toString();
 	}
 }
