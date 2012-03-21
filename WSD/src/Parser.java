@@ -19,6 +19,7 @@ public class Parser{
 	public HashBiMap<String, Integer> wordMap = HashBiMap.create();
 	public ArrayList<String> lines;
 	public int positionCounter = 1;
+	public int WINDOW_SIZE = 10;
 	
 	public void writeCSV(String path) {
 		String currentWord = "begin.v";
@@ -36,7 +37,14 @@ public class Parser{
 			for(i = 1; i < words.size() && !words.get(i).equals("@"); i++)
 				target += words.get(i);		
 			for(int j = i + 1; j < words.size(); j++)
-				curLine.addWord(words.get(j));
+				if(words.get(j).startsWith("@") && words.get(j).endsWith("@")) {
+					//TODO: check for periods
+					int startPos = Math.min(words.size(),j - WINDOW_SIZE/2);
+					int endPos = Math.max(i,j + WINDOW_SIZE/2);
+					for(int k = startPos; k < endPos; k++) {
+						curLine.addWord(words.get(k));
+					}
+				}
 			curLine.setTarget(target);
 			curFile.addLine(curLine);
 		}
