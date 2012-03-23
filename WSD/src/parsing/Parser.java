@@ -1,3 +1,4 @@
+package parsing;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,41 +21,12 @@ public class Parser{
 	public ArrayList<String> lines;
 	public int positionCounter = 1;
 	public int WINDOW_SIZE = 10;
-	
-	public void writeCSV(String path) {
-		String currentWord = "begin.v";
-		SVMLightFile curFile = new SVMLightFile();
-		for(String line : lines) {
-			ArrayList<String> words = getWords(line);
-			if(!currentWord.equals(words.get(0))) {
-				curFile.write(path+"/"+currentWord+".dat");
-				curFile = new SVMLightFile();
-			}
-			currentWord = words.get(0);
-			SVMLightLine curLine = new SVMLightLine(wordMap);
-			String target = "";
-			int i;
-			for(i = 1; i < words.size() && !words.get(i).equals("@"); i++)
-				target += words.get(i);		
-			for(int j = i + 1; j < words.size(); j++)
-				if(words.get(j).startsWith("@") && words.get(j).endsWith("@")) {
-					//TODO: check for periods
-					int startPos = Math.min(words.size(),j - WINDOW_SIZE/2);
-					int endPos = Math.max(i,j + WINDOW_SIZE/2);
-					for(int k = startPos; k < endPos; k++) {
-						curLine.addWord(words.get(k));
-					}
-				}
-			curLine.setTarget(target);
-			curFile.addLine(curLine);
-		}
-	}
-	
+
 	public void createHashMap() {
 		for(String line : lines) {
 			boolean skip = true;
 			ArrayList<String> words = getWords(line);
-			
+
 			//TODO: handle word with @s
 			for(String word : words) {
 				if(skip && !word.equals("@"))
@@ -67,11 +39,11 @@ public class Parser{
 			}
 		}
 	}
-	
-	public void writeHashMap() {
+
+	public void writeHashMap(String filename) {
 		try {
 			//use buffering
-			OutputStream file = new FileOutputStream("wordMap.dat");
+			OutputStream file = new FileOutputStream(filename);
 			OutputStream buffer = new BufferedOutputStream( file );
 			ObjectOutput output = new ObjectOutputStream( buffer );
 			try{
@@ -80,12 +52,12 @@ public class Parser{
 			finally {
 				output.close();
 			}
-		}  
+		}
 		catch(Exception e){
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
      * Returns the lines of a file in an ArrayList
      * @param filename
@@ -109,7 +81,7 @@ public class Parser{
         System.out.println("Done reading file: " + filename);
         return sentences;
     }
-    
+
     /**
      * Given a line, break it into a list of words.
      * @param string
@@ -118,10 +90,7 @@ public class Parser{
      */
     public ArrayList<String> getWords(String line) {
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(line.split(" |\n")));
-        System.out.println("Removing Spaces");
         while(words.remove("")); //Eliminate multiple consecutive spaces
-        System.out.println("Done breaking sentences into words");
-
         return words;
     }
 }
