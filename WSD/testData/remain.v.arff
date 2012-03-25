@@ -1,7 +1,7 @@
 @RELATION remain.v
 
 
-@ATTRIBUTE sense {0001, 0010, 1000, 0100}
+@ATTRIBUTE sense {0001, 0000, 0010, 1000, 0100}
 @ATTRIBUTE #still{0,1}
 @ATTRIBUTE #while{0,1}
 @ATTRIBUTE #prisoners{0,1}

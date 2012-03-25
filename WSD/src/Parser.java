@@ -57,7 +57,7 @@ public class Parser {
 		createARFF(featVector, model, false);
 
 	}
-	
+
 	public static void createARFF(ArrayList<String> featVector, String model, boolean training){
 		try {
 			HashSet<String> senses = new HashSet<String>();
@@ -69,17 +69,25 @@ public class Parser {
 
 			for(String line : trainDoc){
 				String curWord = getWord(line);
-				if(curWord.equals(model))
+				if(curWord.equals(model)){
 					senses.add(getSense(line));	
+				}
 			}
-			
+
+			Iterator<String> sense_it = senses.iterator();
+			int senseSize = sense_it.next().length();
+			String allZero = "";
+			for(int i = 0; i < senseSize; i++)
+				allZero += "0";
+			senses.add(allZero);
+
 			out.println("\n@ATTRIBUTE sense " + senses.toString().replace("[", "{").replace("]", "}"));
-			
+
 			for(String feature: featVector)
 				out.println("@ATTRIBUTE #" + feature + "{0,1}");
 
 
-			
+
 			out.println("\n@DATA");
 			for(String line : ((training)? trainDoc : testDoc)){
 				String curWord = getWord(line);
@@ -95,7 +103,7 @@ public class Parser {
 							else
 								out.print(0 + ",");
 						}
-						
+
 						if(i == featVector.size()-1){
 							if(words.contains(featVector.get(i)))
 								out.print(1);

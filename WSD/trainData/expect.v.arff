@@ -1,7 +1,7 @@
 @RELATION expect.v
 
 
-@ATTRIBUTE sense {0010, 0110, 1000, 0100}
+@ATTRIBUTE sense {0000, 0010, 0110, 1000, 0100}
 @ATTRIBUTE #one{0,1}
 @ATTRIBUTE #might{0,1}
 @ATTRIBUTE #sort{0,1}
