@@ -1,5 +1,7 @@
 @RELATION express.v
 
+
+@ATTRIBUTE sense {00000, 00001, 10000, 01000, 00010, 00101, 00100}
 @ATTRIBUTE #views{0,1}
 @ATTRIBUTE #concern{0,1}
 @ATTRIBUTE #emotions{0,1}
@@ -12,8 +14,6 @@
 @ATTRIBUTE #community{0,1}
 @ATTRIBUTE #both{0,1}
 @ATTRIBUTE #being{0,1}
-
-@ATTRIBUTE sense {00000, 00001, 10000, 01000, 00010, 00101, 00100}
 
 @DATA
 00000,0,0,0,0,0,0,0,0,0,0,0,0
