@@ -69,7 +69,7 @@ public class Parser {
 		commonWords = sortHashMap(commonWords);
 		HashMap<String, Integer> tmp = new HashMap<String, Integer>();
 		Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
-		int topPerc = (int) (commonWords.size() * .03);
+		int topPerc = (int) (commonWords.size() * .01);
 		
 		for(int i = 0; i < topPerc && it.hasNext(); i++){
 			Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
@@ -77,6 +77,7 @@ public class Parser {
 		}
 		
 		commonWords = tmp;
+		System.out.println(commonWords.size() + " common words found: \n ===> " + commonWords);
 	}
 	
 	public static void handleModel(String model){
