@@ -25,7 +25,8 @@ public class Parser {
 	public static ArrayList<String> trainDoc = null;
 	public static ArrayList<String> testDoc = null;
 	public static ArrayList<String> models = null;
-	public static HashSet<String> commonWords = null;
+//	public static HashSet<String> commonWords = null;
+	public static HashMap<String, Integer> commonWords = null;
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
 	public static SentenceDetectorME sentenceDetector = null;
@@ -34,12 +35,50 @@ public class Parser {
 		trainDoc = loadDoc("wsd-data/train.data");
 		testDoc = loadDoc("wsd-data/test.data");
 		loadModels();
+		//loadCommonWords();
 		loadCommonWords();
-
 		for(String model : models)
 			handleModel(model);
 	}
 
+	private static void loadCommonWords() {
+		commonWords = new HashMap<String, Integer>();
+		for(String line : trainDoc){
+			ArrayList<String> words = getWords(line);
+			int i = 0;
+			for(;i < words.size(); i++){
+				if(words.get(i).equals("@")){
+					i++;
+					break;
+				}
+			}
+			for(; i < words.size(); i++){
+				
+				if(!isWord(words.get(i))) 
+					continue;
+				
+				if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
+					continue;
+				if(!commonWords.containsKey(words.get(i)))
+					commonWords.put(words.get(i), 1);
+				else
+					commonWords.put(words.get(i), commonWords.get(words.get(i))+1);
+			}
+		}
+
+		commonWords = sortHashMap(commonWords);
+		HashMap<String, Integer> tmp = new HashMap<String, Integer>();
+		Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
+		int topPerc = (int) (commonWords.size() * .03);
+		
+		for(int i = 0; i < topPerc && it.hasNext(); i++){
+			Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
+			tmp.put(pairs.getKey(), pairs.getValue());
+		}
+		
+		commonWords = tmp;
+	}
+	
 	public static void handleModel(String model){
 		HashMap<String, Integer> freqVector = new HashMap<String, Integer>();
 		ArrayList<String> featVector = new ArrayList<String>();
@@ -167,7 +206,7 @@ public class Parser {
 
 					//right window
 					for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
-						if(!isWord(words.get(j)) || commonWords.contains(words.get(j))) 
+						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j))) 
 							continue;
 						if(!occ.containsKey(words.get(j)))
 							occ.put(words.get(j), 1);
@@ -177,7 +216,7 @@ public class Parser {
 
 					//left window
 					for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
-						if(!isWord(words.get(j)) || commonWords.contains(words.get(j))) 
+						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j))) 
 							continue;
 						if(!occ.containsKey(words.get(j)))
 							occ.put(words.get(j), 1);
@@ -286,71 +325,71 @@ public class Parser {
 		return words;
 	}
 
-	public static void loadCommonWords(){
-		commonWords = 					new HashSet<String>();
-		commonWords.add("the");			commonWords.add("be");
-		commonWords.add("to");			commonWords.add("of");
-		commonWords.add("and");			commonWords.add("a");
-		commonWords.add("in");			commonWords.add("that");
-		commonWords.add("have");		commonWords.add("I");
-		commonWords.add("for");			commonWords.add("not");
-		commonWords.add("on");			commonWords.add("with");
-		commonWords.add("he");			commonWords.add("as");
-		commonWords.add("you");			commonWords.add("do");
-		commonWords.add("this");		commonWords.add("but");
-		commonWords.add("his");			commonWords.add("by");
-		commonWords.add("from");		commonWords.add("they");
-		commonWords.add("we");			commonWords.add("say");
-		commonWords.add("her");			commonWords.add("she");
-		commonWords.add("or");			commonWords.add("an");
-		commonWords.add("will");		commonWords.add("my");
-		commonWords.add("all");			commonWords.add("would");
-		commonWords.add("there");		commonWords.add("their");
-		commonWords.add("what");		commonWords.add("so");
-		commonWords.add("up");			commonWords.add("out");
-		commonWords.add("if");			commonWords.add("about");
-		commonWords.add("who");			commonWords.add("get");
-		commonWords.add("which");		commonWords.add("go");
-		commonWords.add("me");			commonWords.add("The");
-		commonWords.add("is");			commonWords.add("are");
-		commonWords.add("it");			commonWords.add("when");
-		commonWords.add("can");			commonWords.add("was");
-		commonWords.add("only");		commonWords.add("its");
-		commonWords.add("at");			commonWords.add("has");
-		commonWords.add("also");		commonWords.add("them");
-		commonWords.add("same");		commonWords.add("our");
-		commonWords.add("had");			commonWords.add("then");
-		commonWords.add("than");		commonWords.add("any");
-		commonWords.add("When");		commonWords.add("were");
-		commonWords.add("way");			commonWords.add("yet");
-		commonWords.add("He");			commonWords.add("This");
-		commonWords.add("It");			commonWords.add("does");
-		commonWords.add("could");		commonWords.add("must");
-		commonWords.add("no");			commonWords.add("against");
-		commonWords.add("more");		commonWords.add("does");
-		commonWords.add("In");			commonWords.add("His");
-		commonWords.add("upon");		commonWords.add("very");
-		commonWords.add("been");		commonWords.add("some");
-		commonWords.add("too");			commonWords.add("into");
-		commonWords.add("And");			commonWords.add("us");
-		commonWords.add("him");			commonWords.add("may");
-		commonWords.add("over");		commonWords.add("why");
-		commonWords.add("too");			commonWords.add("own");
-		commonWords.add("over");		commonWords.add("many");
-		commonWords.add("because");		commonWords.add("before");
-		commonWords.add("like");		commonWords.add("into");
-		commonWords.add("said");		commonWords.add("these");
-		commonWords.add("less");		commonWords.add("much");
-		commonWords.add("new");			commonWords.add("each");
-		commonWords.add("your");		commonWords.add("just");
-		commonWords.add("But");			commonWords.add("There");
-		commonWords.add("At");			commonWords.add("You");
-		commonWords.add("see");			commonWords.add("should");
-		commonWords.add("how");			commonWords.add("Bye");
-		commonWords.add("your");		commonWords.add("soon");
-		commonWords.add("A");			commonWords.add("did");
-		commonWords.add("such");		commonWords.add("those");
-		commonWords.add("What");		commonWords.add("As");
-		commonWords.add("She");			commonWords.add("By");
-	}
+//	public static void loadCommonWords(){
+//		commonWords = 					new HashSet<String>();
+//		commonWords.add("the");			commonWords.add("be");
+//		commonWords.add("to");			commonWords.add("of");
+//		commonWords.add("and");			commonWords.add("a");
+//		commonWords.add("in");			commonWords.add("that");
+//		commonWords.add("have");		commonWords.add("I");
+//		commonWords.add("for");			commonWords.add("not");
+//		commonWords.add("on");			commonWords.add("with");
+//		commonWords.add("he");			commonWords.add("as");
+//		commonWords.add("you");			commonWords.add("do");
+//		commonWords.add("this");		commonWords.add("but");
+//		commonWords.add("his");			commonWords.add("by");
+//		commonWords.add("from");		commonWords.add("they");
+//		commonWords.add("we");			commonWords.add("say");
+//		commonWords.add("her");			commonWords.add("she");
+//		commonWords.add("or");			commonWords.add("an");
+//		commonWords.add("will");		commonWords.add("my");
+//		commonWords.add("all");			commonWords.add("would");
+//		commonWords.add("there");		commonWords.add("their");
+//		commonWords.add("what");		commonWords.add("so");
+//		commonWords.add("up");			commonWords.add("out");
+//		commonWords.add("if");			commonWords.add("about");
+//		commonWords.add("who");			commonWords.add("get");
+//		commonWords.add("which");		commonWords.add("go");
+//		commonWords.add("me");			commonWords.add("The");
+//		commonWords.add("is");			commonWords.add("are");
+//		commonWords.add("it");			commonWords.add("when");
+//		commonWords.add("can");			commonWords.add("was");
+//		commonWords.add("only");		commonWords.add("its");
+//		commonWords.add("at");			commonWords.add("has");
+//		commonWords.add("also");		commonWords.add("them");
+//		commonWords.add("same");		commonWords.add("our");
+//		commonWords.add("had");			commonWords.add("then");
+//		commonWords.add("than");		commonWords.add("any");
+//		commonWords.add("When");		commonWords.add("were");
+//		commonWords.add("way");			commonWords.add("yet");
+//		commonWords.add("He");			commonWords.add("This");
+//		commonWords.add("It");			commonWords.add("does");
+//		commonWords.add("could");		commonWords.add("must");
+//		commonWords.add("no");			commonWords.add("against");
+//		commonWords.add("more");		commonWords.add("does");
+//		commonWords.add("In");			commonWords.add("His");
+//		commonWords.add("upon");		commonWords.add("very");
+//		commonWords.add("been");		commonWords.add("some");
+//		commonWords.add("too");			commonWords.add("into");
+//		commonWords.add("And");			commonWords.add("us");
+//		commonWords.add("him");			commonWords.add("may");
+//		commonWords.add("over");		commonWords.add("why");
+//		commonWords.add("too");			commonWords.add("own");
+//		commonWords.add("over");		commonWords.add("many");
+//		commonWords.add("because");		commonWords.add("before");
+//		commonWords.add("like");		commonWords.add("into");
+//		commonWords.add("said");		commonWords.add("these");
+//		commonWords.add("less");		commonWords.add("much");
+//		commonWords.add("new");			commonWords.add("each");
+//		commonWords.add("your");		commonWords.add("just");
+//		commonWords.add("But");			commonWords.add("There");
+//		commonWords.add("At");			commonWords.add("You");
+//		commonWords.add("see");			commonWords.add("should");
+//		commonWords.add("how");			commonWords.add("Bye");
+//		commonWords.add("your");		commonWords.add("soon");
+//		commonWords.add("A");			commonWords.add("did");
+//		commonWords.add("such");		commonWords.add("those");
+//		commonWords.add("What");		commonWords.add("As");
+//		commonWords.add("She");			commonWords.add("By");
+//	}
 }
