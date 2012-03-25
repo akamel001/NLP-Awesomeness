@@ -1,0 +1,10 @@
+#!/bin/bash
+for path in trainData/*.arff
+do
+	word=`basename $path`
+	#java weka.classifiers.trees.Id3 -t trainData/$word -d models/$word.model
+	#java weka.classifiers.trees.Id3 -T testData/$word -l models/$word.model -p 1 > predictions/$word.pred
+	echo $word
+	java weka.classifiers.trees.Id3 -t trainData/$word -T testData/$word -c 1 -p 1 > predictions/$word.pred
+		
+done
