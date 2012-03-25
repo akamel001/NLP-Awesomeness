@@ -11,5 +11,5 @@ done
 rm kaggle.csv
 for path in predictions/*.pred
 do
-	tail -n +6 $path | awk -F" " '{print $3}' | cut -d: -f2 | awk -v ORS="" '{gsub(/./, "&\n"); print}' >> kaggle.csv
+	tail -n +6 $path | awk -F"," '{print $3}' | cut -d: -f2 | awk -v ORS="" '{gsub(/./, "&\n"); print}' >> kaggle.csv
 done
