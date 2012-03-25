@@ -1,7 +1,5 @@
 @RELATION use.v
 
-
-@ATTRIBUTE sense {000010, 010000, 000000, 000001}
 @ATTRIBUTE #ACET{0,1}
 @ATTRIBUTE #words{0,1}
 @ATTRIBUTE #word{0,1}
@@ -14,6 +12,8 @@
 @ATTRIBUTE #distinguish{0,1}
 @ATTRIBUTE #childrens{0,1}
 @ATTRIBUTE #Wlflinn{0,1}
+
+@ATTRIBUTE sense {000010, 010000, 000000, 000001}
 
 @DATA
 000000,0,0,0,0,0,0,0,0,0,0,0,0

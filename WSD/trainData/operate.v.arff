@@ -1,7 +1,5 @@
 @RELATION operate.v
 
-
-@ATTRIBUTE sense {010000, 001000, 000000, 000001}
 @ATTRIBUTE #beer{0,1}
 @ATTRIBUTE #time{0,1}
 @ATTRIBUTE #need{0,1}
@@ -14,6 +12,8 @@
 @ATTRIBUTE #pumps{0,1}
 @ATTRIBUTE #pump{0,1}
 @ATTRIBUTE #other{0,1}
+
+@ATTRIBUTE sense {010000, 001000, 000000, 000001}
 
 @DATA
 001000,0,0,0,0,0,0,0,0,0,0,0,0

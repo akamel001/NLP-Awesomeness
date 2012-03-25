@@ -1,7 +1,5 @@
 @RELATION encounter.v
 
-
-@ATTRIBUTE sense {00000, 00001, 01000, 00010, 00100}
 @ATTRIBUTE #problems{0,1}
 @ATTRIBUTE #difficulties{0,1}
 @ATTRIBUTE #first{0,1}
@@ -14,6 +12,8 @@
 @ATTRIBUTE #likely{0,1}
 @ATTRIBUTE #young{0,1}
 @ATTRIBUTE #other{0,1}
+
+@ATTRIBUTE sense {00000, 00001, 01000, 00010, 00100}
 
 @DATA
 01000,0,0,0,0,1,0,0,0,0,0,0,0

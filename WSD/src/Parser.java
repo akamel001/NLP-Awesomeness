@@ -81,12 +81,11 @@ public class Parser {
 				allZero += "0";
 			senses.add(allZero);
 
-			out.println("\n@ATTRIBUTE sense " + senses.toString().replace("[", "{").replace("]", "}"));
 
 			for(String feature: featVector)
 				out.println("@ATTRIBUTE #" + feature + "{0,1}");
 
-
+			out.println("\n@ATTRIBUTE sense " + senses.toString().replace("[", "{").replace("]", "}"));
 
 			out.println("\n@DATA");
 			for(String line : ((training)? trainDoc : testDoc)){

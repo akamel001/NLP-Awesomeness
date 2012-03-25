@@ -1,7 +1,5 @@
 @RELATION appear.v
 
-
-@ATTRIBUTE sense {0001, 0000, 0010, 0110, 0101, 1100, 0100}
 @ATTRIBUTE #time{0,1}
 @ATTRIBUTE #first{0,1}
 @ATTRIBUTE #one{0,1}
@@ -14,6 +12,8 @@
 @ATTRIBUTE #word{0,1}
 @ATTRIBUTE #use{0,1}
 @ATTRIBUTE #two{0,1}
+
+@ATTRIBUTE sense {0001, 0000, 0010, 0110, 0101, 1100, 0100}
 
 @DATA
 0010,0,0,0,0,0,0,0,0,0,0,0,0
