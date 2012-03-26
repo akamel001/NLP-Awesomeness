@@ -1,12 +1,14 @@
+package src;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,7 +21,6 @@ import java.util.Scanner;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 
-
 public class Parser {
 
 	public static ArrayList<String> trainDoc = null;
@@ -30,18 +31,89 @@ public class Parser {
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
 	public static SentenceDetectorME sentenceDetector = null;
+	public static HashMap<String, LinkedHashMap<String, Double>> precisionTable;
+	public static HashMap<String, Integer> cumulativeFrequency = new HashMap<String, Integer>();
+
+	public static int windowSize = 14;
+	public static int NUM_FEATURES_PER_SENSE = 1;
 
 	public static void main(String[] args) {
 		trainDoc = loadDoc("wsd-data/train.data");
+		Collections.sort(trainDoc, new LineComparator());
 		testDoc = loadDoc("wsd-data/test.data");
+		initSentenceDetector();
 		loadModels();
-		//loadCommonWords();
 		loadCommonWords();
+		buildPrecisionTable("precision.map");
 		for(String model : models)
 			handleModel(model);
 	}
 
+	private static void initSentenceDetector() {
+	    try {
+    	    modelIn = new FileInputStream("models/en-sent.bin");
+            sm = new SentenceModel(modelIn);
+            sentenceDetector = new SentenceDetectorME(sm);
+	    } catch(Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	private static void buildPrecisionTable(String filename) {
+	    ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>> serializer = new ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>>();
+	    precisionTable = serializer.readObject(filename);
+	    if(precisionTable != null)
+	        return;
+	    precisionTable = new LinkedHashMap<String, LinkedHashMap<String, Double>>();
+
+	    System.out.println("Building Precision Table");
+	    HashMap<String, Integer> frequencyTable = new HashMap<String, Integer>();
+	    LinkedHashMap<String, Double> curMap;
+	    String label = "", word = "", key = "";
+        for(String line : trainDoc) {
+            label = getSense(line);
+            word = getWord(line);
+
+            if(key.equals(""))
+                key = word + label;
+            else if(!key.equals(word + label)) {
+                key = word + label;
+
+                if(!precisionTable.containsKey(key))
+                    curMap = new LinkedHashMap<String, Double>();
+                else {
+                    curMap = precisionTable.get(key);
+                    System.err.println("WTF");
+                    System.exit(0);
+                }
+
+                for(Entry<String, Integer> entry : frequencyTable.entrySet())
+                    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)commonWords.get(entry.getKey()));
+
+                System.out.println("Sorting Map:" + key);
+                curMap = sortDoubleHashMap(curMap);
+
+                precisionTable.put(key, curMap);
+                frequencyTable.clear();
+            }
+
+
+            ArrayList<String> words = getWords(line);
+            for(String curWord : words) {
+                if(!isWord(curWord))
+                    continue;
+
+                if(!frequencyTable.containsKey(curWord))
+                    frequencyTable.put(curWord, 1);
+                else
+                    frequencyTable.put(curWord, frequencyTable.get(curWord)+1);
+            }
+        }
+        serializer.writeObject(precisionTable, filename);
+	}
+
 	private static void loadCommonWords() {
+	    System.out.println("Loading Common Words");
 		commonWords = new HashMap<String, Integer>();
 		for(String line : trainDoc){
 			ArrayList<String> words = getWords(line);
@@ -53,10 +125,10 @@ public class Parser {
 				}
 			}
 			for(; i < words.size(); i++){
-				
-				if(!isWord(words.get(i))) 
+
+				if(!isWord(words.get(i)))
 					continue;
-				
+
 				if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
 					continue;
 				if(!commonWords.containsKey(words.get(i)))
@@ -65,37 +137,47 @@ public class Parser {
 					commonWords.put(words.get(i), commonWords.get(words.get(i))+1);
 			}
 		}
-
-		commonWords = sortHashMap(commonWords);
-		HashMap<String, Integer> tmp = new HashMap<String, Integer>();
-		Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
-		int topPerc = (int) (commonWords.size() * .01);
-		
-		for(int i = 0; i < topPerc && it.hasNext(); i++){
-			Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
-			tmp.put(pairs.getKey(), pairs.getValue());
-		}
-		
-		commonWords = tmp;
-		System.out.println(commonWords.size() + " common words found: \n ===> " + commonWords);
 	}
-	
+
+	private static void filterCommonWords(double percent) {
+	       commonWords = sortIntHashMap(commonWords);
+	        HashMap<String, Integer> tmp = new HashMap<String, Integer>();
+	        Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
+	        int topPerc = (int) (commonWords.size() * percent);
+
+	        for(int i = 0; i < topPerc && it.hasNext(); i++){
+	            Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
+	            tmp.put(pairs.getKey(), pairs.getValue());
+	        }
+
+	        commonWords = tmp;
+	        System.out.println(commonWords.size() + " common words found: \n ===> " + commonWords);
+	}
+
 	public static void handleModel(String model){
-		HashMap<String, Integer> freqVector = new HashMap<String, Integer>();
-		ArrayList<String> featVector = new ArrayList<String>();
+		ArrayList<String> featVector = getFeatures(model);
 
-		freqVector = getHashMap(model);
-		int numFreqWords = 12;
-
-		Iterator<Entry<String, Integer>> it = freqVector.entrySet().iterator();
-
-		for(int i = 0; i < numFreqWords && it.hasNext(); i++){
-			Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
-			featVector.add(pairs.getKey());
-		}
+		System.out.println(model);
 		createARFF(featVector, model, true);
 		createARFF(featVector, model, false);
+	}
 
+	public static ArrayList<String> getFeatures(String model) {
+	    HashSet<String> features = new HashSet<String>();
+	    for(Entry<String, LinkedHashMap<String, Double>> entry1 : precisionTable.entrySet()) {
+	        if(!entry1.getKey().startsWith(model))
+	            continue;
+	        int count = 0;
+	        for(Entry<String, Double> entry2 : entry1.getValue().entrySet()) {
+	            if(++count > NUM_FEATURES_PER_SENSE)
+	                break;
+	            features.add(entry2.getKey());
+	        }
+	    }
+	    ArrayList<String> returnList = new ArrayList<String>();
+	    for(String feature : features)
+	        returnList.add(feature);
+	    return returnList;
 	}
 
 	public static void createARFF(ArrayList<String> featVector, String model, boolean training){
@@ -110,7 +192,7 @@ public class Parser {
 			for(String line : trainDoc){
 				String curWord = getWord(line);
 				if(curWord.equals(model)){
-					senses.add(getSense(line));	
+					senses.add(getSense(line));
 				}
 			}
 
@@ -132,27 +214,44 @@ public class Parser {
 			for(String line : ((training)? trainDoc : testDoc)){
 				String curWord = getWord(line);
 				if(curWord.equals(model)){
-					out.print(getSense(line) + ",");
+				    ArrayList<String> valueVector = new ArrayList<String>();
+				    String sense = getSense(line);
+				    int count = 0;
+				    for(int i = 0; i < sense.length(); i++) {
+				        if(sense.charAt(i) != '0')
+				            count++;
+				    }
+				    if(count > 1)
+				        continue;
+				    valueVector.add(sense);
 
-					String sentence = getSentence(sentenceDetector.sentDetect(line));
-					ArrayList<String> words = getWords(sentence);
-					for(int i = 0; i < featVector.size(); i++){
-						if(i < featVector.size()-1){
-							if(words.contains(featVector.get(i)))
-								out.print(1 + ",");
-							else
-								out.print(0 + ",");
-						}
+					//String sentence = getSentence(sentenceDetector.sentDetect(line));
+					ArrayList<String> words = getWords(line);//sentence);
 
-						if(i == featVector.size()-1){
-							if(words.contains(featVector.get(i)))
-								out.print(1);
-							else
-								out.print(0);
-						}
+					boolean commit = false;
+					for(int i = 0; i < featVector.size(); i++) {
+					    if(i < featVector.size()){
+	                        if(words.contains(featVector.get(i))) {
+	                            valueVector.add("1");
+	                            commit = true;
+	                        } else
+	                            valueVector.add("0");
+	                    }
 					}
-					out.print("\n");
+
+					if(!commit)
+					    valueVector.set(0, allZero);
+
+					//if(commit || !training)
+					    out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");
 				}
+			}
+			if(training) {
+			    ArrayList<String> valueVector = new ArrayList<String>();
+			    valueVector.add(allZero);
+			    for(String feature : featVector)
+			        valueVector.add("0");
+			    out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");
 			}
 
 			outFile.close();
@@ -177,6 +276,7 @@ public class Parser {
 	}
 
 	public static void loadModels(){
+	    System.out.println("Loading Models");
 		models = new ArrayList<String>();
 		for(String line : trainDoc){
 			ArrayList<String> words = getWords(line);
@@ -186,14 +286,13 @@ public class Parser {
 		Collections.sort(models);
 	}
 
-	public static HashMap<String, Integer> getHashMap(String curModel){
+	/*public static HashMap<String, Integer> getHashMap(String curModel){
 		System.out.println(curModel);
 		try {
 			HashMap<String, Integer> occ = new HashMap<String, Integer>();
 			modelIn = new FileInputStream("models/en-sent.bin");
 			sm = new SentenceModel(modelIn);
 			sentenceDetector = new SentenceDetectorME(sm);
-			int windowSize = 14;
 			for(String line : trainDoc){
 				String target = getWord(line);
 				if(target.equals(curModel)){
@@ -207,7 +306,7 @@ public class Parser {
 
 					//right window
 					for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
-						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j))) 
+						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j)))
 							continue;
 						if(!occ.containsKey(words.get(j)))
 							occ.put(words.get(j), 1);
@@ -217,7 +316,7 @@ public class Parser {
 
 					//left window
 					for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
-						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j))) 
+						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j)))
 							continue;
 						if(!occ.containsKey(words.get(j)))
 							occ.put(words.get(j), 1);
@@ -225,15 +324,15 @@ public class Parser {
 							occ.put(words.get(j), occ.get(words.get(j))+1);
 					}
 				}
-			}			
+			}
 			modelIn.close();
-			return sortHashMap(occ);
+			return sortIntHashMap(occ);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
-	}
+	}*/
 
 	public static boolean isWord(String word){
 		for(int i = 0; i < word.length(); i++){
@@ -262,10 +361,10 @@ public class Parser {
 					return sentence;
 			}
 		}
-		return null;	
+		return null;
 	}
 
-	public static LinkedHashMap<String, Integer> sortHashMap(HashMap<String, Integer> passedMap) {
+	public static LinkedHashMap<String, Integer> sortIntHashMap(HashMap<String, Integer> passedMap) {
 		List<String> mapKeys = new ArrayList<String>(passedMap.keySet());
 		List<Integer> mapValues = new ArrayList<Integer>(passedMap.values());
 		Collections.sort(mapValues);
@@ -299,6 +398,40 @@ public class Parser {
 		return sortedMap;
 	}
 
+	public static LinkedHashMap<String, Double> sortDoubleHashMap(HashMap<String, Double> passedMap) {
+        List<String> mapKeys = new ArrayList<String>(passedMap.keySet());
+        List<Double> mapValues = new ArrayList<Double>(passedMap.values());
+        Collections.sort(mapValues);
+        Collections.reverse(mapValues);
+
+        Collections.sort(mapKeys);
+        Collections.reverse(mapKeys);
+
+        LinkedHashMap<String, Double> sortedMap = new LinkedHashMap<String, Double>();
+
+        Iterator<Double> valueIt = mapValues.iterator();
+        while (valueIt.hasNext()) {
+            Object val = valueIt.next();
+            Iterator<String> keyIt = mapKeys.iterator();
+
+            while (keyIt.hasNext()) {
+                Object key = keyIt.next();
+                String comp1 = passedMap.get(key).toString();
+                String comp2 = val.toString();
+
+                if (comp1.equals(comp2)){
+                    passedMap.remove(key);
+                    mapKeys.remove(key);
+                    sortedMap.put((String)key, (Double)val);
+                    break;
+                }
+
+            }
+
+        }
+        return sortedMap;
+    }
+
 	public static ArrayList<String> loadDoc(String filename) {
 		System.out.println("Reading File:" + filename);
 		Scanner scanner = null;
@@ -324,6 +457,22 @@ public class Parser {
 		ArrayList<String> words = new ArrayList<String>(Arrays.asList(line.split(" |\n")));
 		while(words.remove("")); //Eliminate multiple consecutive spaces
 		return words;
+	}
+
+	public static class LineComparator implements Comparator<String> {
+        @Override
+        public int compare(String s1, String s2) {
+            String s1word = getWord(s1);
+            String s2word = getWord(s2);
+            int compare = s1word.compareTo(s2word);
+            if(compare == 0) {
+                int s1Sense = Integer.parseInt(getSense(s1), 2);
+                int s2Sense = Integer.parseInt(getSense(s2), 2);
+                return s1Sense - s2Sense;
+            } else
+                return compare;
+        }
+
 	}
 
 //	public static void loadCommonWords(){
