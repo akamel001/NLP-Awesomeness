@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
@@ -26,13 +25,13 @@ public class Parser {
 	public static ArrayList<String> trainDoc = null;
 	public static ArrayList<String> testDoc = null;
 	public static ArrayList<String> models = null;
-//	public static HashSet<String> commonWords = null;
-	public static HashMap<String, Integer> commonWords = null;
+	public static HashSet<String> commonWords = null;
+//	public static HashMap<String, Integer> commonWords = null;
+	public static HashMap<String, Integer> countWords = null;
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
 	public static SentenceDetectorME sentenceDetector = null;
-	public static HashMap<String, LinkedHashMap<String, Double>> precisionTable;
-	public static HashMap<String, Integer> cumulativeFrequency = new HashMap<String, Integer>();
+	public static HashMap<String, LinkedHashMap<String, Double>> precisionTable = null;
 
 	public static int windowSize = 14;
 	public static int NUM_FEATURES_PER_SENSE = 1;
@@ -42,8 +41,9 @@ public class Parser {
 		Collections.sort(trainDoc, new LineComparator());
 		testDoc = loadDoc("wsd-data/test.data");
 		initSentenceDetector();
-		loadModels();
 		loadCommonWords();
+		loadModels();
+		countWords();
 		buildPrecisionTable("precision.map");
 		for(String model : models)
 			handleModel(model);
@@ -61,9 +61,9 @@ public class Parser {
 
 	private static void buildPrecisionTable(String filename) {
 	    ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>> serializer = new ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>>();
-	    precisionTable = serializer.readObject(filename);
+	    /*precisionTable = serializer.readObject(filename);
 	    if(precisionTable != null)
-	        return;
+	        return;*/
 	    precisionTable = new LinkedHashMap<String, LinkedHashMap<String, Double>>();
 
 	    System.out.println("Building Precision Table");
@@ -77,8 +77,6 @@ public class Parser {
             if(key.equals(""))
                 key = word + label;
             else if(!key.equals(word + label)) {
-                key = word + label;
-
                 if(!precisionTable.containsKey(key))
                     curMap = new LinkedHashMap<String, Double>();
                 else {
@@ -88,33 +86,61 @@ public class Parser {
                 }
 
                 for(Entry<String, Integer> entry : frequencyTable.entrySet())
-                    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)commonWords.get(entry.getKey()));
+                    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)countWords.get(entry.getKey()));
 
                 System.out.println("Sorting Map:" + key);
                 curMap = sortDoubleHashMap(curMap);
 
                 precisionTable.put(key, curMap);
+
+                key = word + label;
                 frequencyTable.clear();
             }
 
-
             ArrayList<String> words = getWords(line);
-            for(String curWord : words) {
-                if(!isWord(curWord))
-                    continue;
+            if(windowSize > 0) {
+                int i = 0;
+                for(;i < words.size();i++){
+                    if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
+                        break;
+                }
 
-                if(!frequencyTable.containsKey(curWord))
-                    frequencyTable.put(curWord, 1);
-                else
-                    frequencyTable.put(curWord, frequencyTable.get(curWord)+1);
+                //right window
+                for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
+                    if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
+                        continue;
+                    if(!frequencyTable.containsKey(words.get(j).toLowerCase()))
+                        frequencyTable.put(words.get(j).toLowerCase(), 1);
+                    else
+                        frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
+                }
+
+                //left window
+                for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
+                    if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
+                        continue;
+                    if(!frequencyTable.containsKey(words.get(j).toLowerCase()))
+                        frequencyTable.put(words.get(j).toLowerCase(), 1);
+                    else
+                        frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
+                }
+            } else {
+                for(String curWord : words) {
+                    if(!isWord(curWord))
+                        continue;
+                    if(!frequencyTable.containsKey(curWord.toLowerCase()))
+                        frequencyTable.put(curWord.toLowerCase(), 1);
+                    else
+                        frequencyTable.put(curWord.toLowerCase(), frequencyTable.get(curWord.toLowerCase())+1);
+                }
             }
         }
         serializer.writeObject(precisionTable, filename);
 	}
 
-	private static void loadCommonWords() {
-	    System.out.println("Loading Common Words");
-		commonWords = new HashMap<String, Integer>();
+	private static void countWords() {
+	    System.out.println("Counting Words");
+		countWords = new HashMap<String, Integer>();
 		for(String line : trainDoc){
 			ArrayList<String> words = getWords(line);
 			int i = 0;
@@ -131,15 +157,15 @@ public class Parser {
 
 				if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
 					continue;
-				if(!commonWords.containsKey(words.get(i)))
-					commonWords.put(words.get(i), 1);
+				if(!countWords.containsKey(words.get(i).toLowerCase()))
+				    countWords.put(words.get(i).toLowerCase(), 1);
 				else
-					commonWords.put(words.get(i), commonWords.get(words.get(i))+1);
+				    countWords.put(words.get(i).toLowerCase(), countWords.get(words.get(i).toLowerCase())+1);
 			}
 		}
 	}
 
-	private static void filterCommonWords(double percent) {
+	/*private static void filterCommonWords(double percent) {
 	       commonWords = sortIntHashMap(commonWords);
 	        HashMap<String, Integer> tmp = new HashMap<String, Integer>();
 	        Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
@@ -152,7 +178,7 @@ public class Parser {
 
 	        commonWords = tmp;
 	        System.out.println(commonWords.size() + " common words found: \n ===> " + commonWords);
-	}
+	}*/
 
 	public static void handleModel(String model){
 		ArrayList<String> featVector = getFeatures(model);
@@ -169,7 +195,11 @@ public class Parser {
 	            continue;
 	        int count = 0;
 	        for(Entry<String, Double> entry2 : entry1.getValue().entrySet()) {
-	            if(++count > NUM_FEATURES_PER_SENSE)
+	            if(commonWords.contains(entry2.getKey()))
+	                continue;
+	            //if(++count > NUM_FEATURES_PER_SENSE)
+	            //    break;
+	            if(entry2.getValue() != 1.0)
 	                break;
 	            features.add(entry2.getKey());
 	        }
@@ -231,7 +261,7 @@ public class Parser {
 					boolean commit = false;
 					for(int i = 0; i < featVector.size(); i++) {
 					    if(i < featVector.size()){
-	                        if(words.contains(featVector.get(i))) {
+	                        if(words.contains(featVector.get(i).toLowerCase())) {
 	                            valueVector.add("1");
 	                            commit = true;
 	                        } else
@@ -456,6 +486,8 @@ public class Parser {
 		if(line == null) return null;
 		ArrayList<String> words = new ArrayList<String>(Arrays.asList(line.split(" |\n")));
 		while(words.remove("")); //Eliminate multiple consecutive spaces
+		for(int i = 0; i < words.size(); i++)
+		    words.set(i, words.get(i).toLowerCase());
 		return words;
 	}
 
@@ -475,71 +507,71 @@ public class Parser {
 
 	}
 
-//	public static void loadCommonWords(){
-//		commonWords = 					new HashSet<String>();
-//		commonWords.add("the");			commonWords.add("be");
-//		commonWords.add("to");			commonWords.add("of");
-//		commonWords.add("and");			commonWords.add("a");
-//		commonWords.add("in");			commonWords.add("that");
-//		commonWords.add("have");		commonWords.add("I");
-//		commonWords.add("for");			commonWords.add("not");
-//		commonWords.add("on");			commonWords.add("with");
-//		commonWords.add("he");			commonWords.add("as");
-//		commonWords.add("you");			commonWords.add("do");
-//		commonWords.add("this");		commonWords.add("but");
-//		commonWords.add("his");			commonWords.add("by");
-//		commonWords.add("from");		commonWords.add("they");
-//		commonWords.add("we");			commonWords.add("say");
-//		commonWords.add("her");			commonWords.add("she");
-//		commonWords.add("or");			commonWords.add("an");
-//		commonWords.add("will");		commonWords.add("my");
-//		commonWords.add("all");			commonWords.add("would");
-//		commonWords.add("there");		commonWords.add("their");
-//		commonWords.add("what");		commonWords.add("so");
-//		commonWords.add("up");			commonWords.add("out");
-//		commonWords.add("if");			commonWords.add("about");
-//		commonWords.add("who");			commonWords.add("get");
-//		commonWords.add("which");		commonWords.add("go");
-//		commonWords.add("me");			commonWords.add("The");
-//		commonWords.add("is");			commonWords.add("are");
-//		commonWords.add("it");			commonWords.add("when");
-//		commonWords.add("can");			commonWords.add("was");
-//		commonWords.add("only");		commonWords.add("its");
-//		commonWords.add("at");			commonWords.add("has");
-//		commonWords.add("also");		commonWords.add("them");
-//		commonWords.add("same");		commonWords.add("our");
-//		commonWords.add("had");			commonWords.add("then");
-//		commonWords.add("than");		commonWords.add("any");
-//		commonWords.add("When");		commonWords.add("were");
-//		commonWords.add("way");			commonWords.add("yet");
-//		commonWords.add("He");			commonWords.add("This");
-//		commonWords.add("It");			commonWords.add("does");
-//		commonWords.add("could");		commonWords.add("must");
-//		commonWords.add("no");			commonWords.add("against");
-//		commonWords.add("more");		commonWords.add("does");
-//		commonWords.add("In");			commonWords.add("His");
-//		commonWords.add("upon");		commonWords.add("very");
-//		commonWords.add("been");		commonWords.add("some");
-//		commonWords.add("too");			commonWords.add("into");
-//		commonWords.add("And");			commonWords.add("us");
-//		commonWords.add("him");			commonWords.add("may");
-//		commonWords.add("over");		commonWords.add("why");
-//		commonWords.add("too");			commonWords.add("own");
-//		commonWords.add("over");		commonWords.add("many");
-//		commonWords.add("because");		commonWords.add("before");
-//		commonWords.add("like");		commonWords.add("into");
-//		commonWords.add("said");		commonWords.add("these");
-//		commonWords.add("less");		commonWords.add("much");
-//		commonWords.add("new");			commonWords.add("each");
-//		commonWords.add("your");		commonWords.add("just");
-//		commonWords.add("But");			commonWords.add("There");
-//		commonWords.add("At");			commonWords.add("You");
-//		commonWords.add("see");			commonWords.add("should");
-//		commonWords.add("how");			commonWords.add("Bye");
-//		commonWords.add("your");		commonWords.add("soon");
-//		commonWords.add("A");			commonWords.add("did");
-//		commonWords.add("such");		commonWords.add("those");
-//		commonWords.add("What");		commonWords.add("As");
-//		commonWords.add("She");			commonWords.add("By");
-//	}
+	public static void loadCommonWords(){
+		commonWords = 					new HashSet<String>();
+		commonWords.add("the");			commonWords.add("be");
+		commonWords.add("to");			commonWords.add("of");
+		commonWords.add("and");			commonWords.add("a");
+		commonWords.add("in");			commonWords.add("that");
+		commonWords.add("have");		commonWords.add("i");
+		commonWords.add("for");			commonWords.add("not");
+		commonWords.add("on");			commonWords.add("with");
+		commonWords.add("he");			commonWords.add("as");
+		commonWords.add("you");			commonWords.add("do");
+		commonWords.add("this");		commonWords.add("but");
+		commonWords.add("his");			commonWords.add("by");
+		commonWords.add("from");		commonWords.add("they");
+		commonWords.add("we");			commonWords.add("say");
+		commonWords.add("her");			commonWords.add("she");
+		commonWords.add("or");			commonWords.add("an");
+		commonWords.add("will");		commonWords.add("my");
+		commonWords.add("all");			commonWords.add("would");
+		commonWords.add("there");		commonWords.add("their");
+		commonWords.add("what");		commonWords.add("so");
+		commonWords.add("up");			commonWords.add("out");
+		commonWords.add("if");			commonWords.add("about");
+		commonWords.add("who");			commonWords.add("get");
+		commonWords.add("which");		commonWords.add("go");
+		commonWords.add("me");			commonWords.add("the");
+		commonWords.add("is");			commonWords.add("are");
+		commonWords.add("it");			commonWords.add("when");
+		commonWords.add("can");			commonWords.add("was");
+		commonWords.add("only");		commonWords.add("its");
+		commonWords.add("at");			commonWords.add("has");
+		commonWords.add("also");		commonWords.add("them");
+		commonWords.add("same");		commonWords.add("our");
+		commonWords.add("had");			commonWords.add("then");
+		commonWords.add("than");		commonWords.add("any");
+		commonWords.add("when");		commonWords.add("were");
+		commonWords.add("way");			commonWords.add("yet");
+		commonWords.add("he");			commonWords.add("this");
+		commonWords.add("it");			commonWords.add("does");
+		commonWords.add("could");		commonWords.add("must");
+		commonWords.add("no");			commonWords.add("against");
+		commonWords.add("more");		commonWords.add("does");
+		commonWords.add("in");			commonWords.add("his");
+		commonWords.add("upon");		commonWords.add("very");
+		commonWords.add("been");		commonWords.add("some");
+		commonWords.add("too");			commonWords.add("into");
+		commonWords.add("and");			commonWords.add("us");
+		commonWords.add("him");			commonWords.add("may");
+		commonWords.add("over");		commonWords.add("why");
+		commonWords.add("too");			commonWords.add("own");
+		commonWords.add("over");		commonWords.add("many");
+		commonWords.add("because");		commonWords.add("before");
+		commonWords.add("like");		commonWords.add("into");
+		commonWords.add("said");		commonWords.add("these");
+		commonWords.add("less");		commonWords.add("much");
+		commonWords.add("new");			commonWords.add("each");
+		commonWords.add("your");		commonWords.add("just");
+		commonWords.add("but");			commonWords.add("there");
+		commonWords.add("at");			commonWords.add("you");
+		commonWords.add("see");			commonWords.add("should");
+		commonWords.add("how");			commonWords.add("bye");
+		commonWords.add("your");		commonWords.add("soon");
+		commonWords.add("a");			commonWords.add("did");
+		commonWords.add("such");		commonWords.add("those");
+		commonWords.add("what");		commonWords.add("as");
+		commonWords.add("she");			commonWords.add("by");
+	}
 }
