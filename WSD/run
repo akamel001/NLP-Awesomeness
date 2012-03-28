@@ -59,7 +59,7 @@ plan.n)
 for word in ${filenames[@]}
 do
 	echo $word
-	java -classpath "C:\Program Files (x86)\Weka-3-7\weka.jar" weka.classifiers.trees.J48 -t trainData/$word.arff -T testData/$word.arff -c 1 -classifications "weka.classifiers.evaluation.output.prediction.CSV" > predictions/$word.pred
+	java weka.classifiers.meta.Bagging -P 100 -S 1 -num-slots 1 -I 10 -W weka.classifiers.trees.J48 -t trainData/$word.arff -T testData/$word.arff -c 1 -classifications "weka.classifiers.evaluation.output.prediction.CSV" > predictions/$word.pred
 		
 done
 rm kaggle.csv
