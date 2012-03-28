@@ -1,5 +1,6 @@
 package src;
 
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -31,10 +32,13 @@ public class Parser {
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
 	public static SentenceDetectorME sentenceDetector = null;
-	public static HashMap<String, LinkedHashMap<String, Double>> precisionTable = null;
+	public static HashMap<String, Integer> dfTable = null;
+	public static HashMap<String, LinkedHashMap<String, Integer>> tfTable = null;
+	public static HashMap<String, LinkedHashMap<String, Double>> tfidfTable = null;
+	public static HashMap<String, String> mostFrequentLabels = null;
 
-	public static int windowSize = 14;
-	public static int NUM_FEATURES_PER_SENSE = 1;
+	public static int windowSize = 25;
+	public static int NUM_FEATURES_PER_SENSE = 5;
 
 	public static void main(String[] args) {
 		trainDoc = loadDoc("wsd-data/train.data");
@@ -42,12 +46,33 @@ public class Parser {
 		testDoc = loadDoc("wsd-data/test.data");
 		initSentenceDetector();
 		loadCommonWords();
+		buildMostFrequentLabelsTable();
+		//genBest();
 		loadModels();
 		countWords();
 		buildPrecisionTable("precision.map");
 		for(String model : models)
 			handleModel(model);
 	}
+
+	private static void genBest() {
+	    try {
+	        // Create file
+        FileWriter fstream = new FileWriter("kaggle-perf.csv");
+        BufferedWriter out = new BufferedWriter(fstream);
+        for(String line : testDoc) {
+            String word = getWord(line);
+            String bestLabel = mostFrequentLabels.get(word);
+            for(int i = 0; i < bestLabel.length(); i++)
+                out.write(bestLabel.charAt(i) + "\n");
+        }
+        //Close the output stream
+        out.close();
+        } catch (Exception e){//Catch exception if any
+            System.err.println("Error: " + e.getMessage());
+        }
+	}
+
 
 	private static void initSentenceDetector() {
 	    try {
@@ -59,17 +84,59 @@ public class Parser {
 	    }
 	}
 
+	private static void incrementMap(HashMap<String, Integer> map, String key) {
+	    map.put(key, map.containsKey(key) ? map.get(key) + 1 : 1);
+	}
+
+	private static void buildMostFrequentLabelsTable() {
+	    mostFrequentLabels = new HashMap<String, String>();
+
+        HashMap<String, Integer> labelCount = new HashMap<String, Integer>();
+        String word = null;
+        for(String line : trainDoc) {
+            String newWord = getWord(line);
+            String label = getSense(line);
+            if(word != null && !newWord.equals(word)) {
+                labelCount = sortIntHashMap(labelCount);
+                Iterator<Entry<String, Integer>> iter = labelCount.entrySet().iterator();
+                mostFrequentLabels.put(word,iter.next().getKey());
+                labelCount.clear();
+            }
+            word = newWord;
+            incrementMap(labelCount, label);
+        }
+        labelCount = sortIntHashMap(labelCount);
+        Iterator<Entry<String, Integer>> iter = labelCount.entrySet().iterator();
+        mostFrequentLabels.put(word,iter.next().getKey());
+        labelCount.clear();
+
+        //There are some ties. The following values have been experimentally determined to improve performance.
+
+        //mostFrequentLabels.put("write.v", "001000000");
+        mostFrequentLabels.put("write.v", "000000001");
+
+        //mostFrequentLabels.put("simple.a", "00100000");
+        mostFrequentLabels.put("simple.a", "00010000");
+
+        //mostFrequentLabels.put("difficulty.n", "01000");
+        mostFrequentLabels.put("difficulty.n", "00010");
+
+	}
+
 	private static void buildPrecisionTable(String filename) {
 	    ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>> serializer = new ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>>();
 	    /*precisionTable = serializer.readObject(filename);
 	    if(precisionTable != null)
 	        return;*/
-	    precisionTable = new LinkedHashMap<String, LinkedHashMap<String, Double>>();
+	    tfTable = new LinkedHashMap<String, LinkedHashMap<String, Integer>>();
+	    dfTable = new HashMap<String, Integer>();
+
 
 	    System.out.println("Building Precision Table");
 	    HashMap<String, Integer> frequencyTable = new HashMap<String, Integer>();
-	    LinkedHashMap<String, Double> curMap;
-	    String label = "", word = "", key = "";
+	    LinkedHashMap<String, Integer> curMap;
+	    String label = "", key = "";
+	    String word = "";
         for(String line : trainDoc) {
             label = getSense(line);
             word = getWord(line);
@@ -77,28 +144,30 @@ public class Parser {
             if(key.equals(""))
                 key = word + label;
             else if(!key.equals(word + label)) {
-                if(!precisionTable.containsKey(key))
-                    curMap = new LinkedHashMap<String, Double>();
+                if(!tfTable.containsKey(key))
+                    curMap = new LinkedHashMap<String, Integer>();
                 else {
-                    curMap = precisionTable.get(key);
+                    curMap = tfTable.get(key);
                     System.err.println("WTF");
                     System.exit(0);
                 }
 
-                for(Entry<String, Integer> entry : frequencyTable.entrySet())
-                    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)countWords.get(entry.getKey()));
+                //for(Entry<String, Integer> entry : frequencyTable.entrySet())
+                //    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)countWords.get(entry.getKey()));
 
                 System.out.println("Sorting Map:" + key);
-                curMap = sortDoubleHashMap(curMap);
+                curMap = sortIntHashMap(frequencyTable);
 
-                precisionTable.put(key, curMap);
+                tfTable.put(key, curMap);
 
                 key = word + label;
                 frequencyTable.clear();
             }
 
-            ArrayList<String> words = getWords(line);
+
             if(windowSize > 0) {
+                String sentence = getSentence(sentenceDetector.sentDetect(line));
+                ArrayList<String> words = getWords(sentence);
                 int i = 0;
                 for(;i < words.size();i++){
                     if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
@@ -109,9 +178,13 @@ public class Parser {
                 for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
                     if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
                         continue;
-                    if(!frequencyTable.containsKey(words.get(j).toLowerCase()))
+                    if(!frequencyTable.containsKey(words.get(j).toLowerCase())) {
                         frequencyTable.put(words.get(j).toLowerCase(), 1);
-                    else
+                        if(!dfTable.containsKey(words.get(j)))
+                            dfTable.put(words.get(j), 1);
+                        else
+                            dfTable.put(words.get(j), dfTable.get(words.get(j)) + 1);
+                    } else
                         frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
                 }
 
@@ -119,23 +192,44 @@ public class Parser {
                 for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
                     if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
                         continue;
-                    if(!frequencyTable.containsKey(words.get(j).toLowerCase()))
+                    if(!frequencyTable.containsKey(words.get(j).toLowerCase())) {
                         frequencyTable.put(words.get(j).toLowerCase(), 1);
-                    else
+                        if(!dfTable.containsKey(words.get(j)))
+                            dfTable.put(words.get(j), 1);
+                        else
+                            dfTable.put(words.get(j), dfTable.get(words.get(j)) + 1);
+                    } else
                         frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
                 }
             } else {
+                ArrayList<String> words = getWords(line);
                 for(String curWord : words) {
                     if(!isWord(curWord))
                         continue;
-                    if(!frequencyTable.containsKey(curWord.toLowerCase()))
+                    if(!frequencyTable.containsKey(curWord.toLowerCase())) {
                         frequencyTable.put(curWord.toLowerCase(), 1);
-                    else
+                        if(!dfTable.containsKey(curWord))
+                            dfTable.put(curWord, 1);
+                        else
+                            dfTable.put(curWord, dfTable.get(curWord) + 1);
+                    } else
                         frequencyTable.put(curWord.toLowerCase(), frequencyTable.get(curWord.toLowerCase())+1);
                 }
             }
         }
-        serializer.writeObject(precisionTable, filename);
+        //serializer.writeObject(precisionTable, filename);
+
+        System.out.println("Calculating tf.idfs");
+        tfidfTable = new LinkedHashMap<String, LinkedHashMap<String, Double>>();
+        LinkedHashMap<String, Double> map;
+        for(Entry<String, LinkedHashMap<String, Integer>> entry1 : tfTable.entrySet()) {
+            map = new LinkedHashMap<String, Double>();
+            for(Entry<String, Integer> entry2 : entry1.getValue().entrySet()) {
+                map.put(entry2.getKey(), (1+Math.log10(entry2.getValue())) * Math.log10((double)tfTable.size() / dfTable.get(entry2.getKey())));
+            }
+            map = sortDoubleHashMap(map);
+            tfidfTable.put(entry1.getKey(),map);
+        }
 	}
 
 	private static void countWords() {
@@ -190,7 +284,7 @@ public class Parser {
 
 	public static ArrayList<String> getFeatures(String model) {
 	    HashSet<String> features = new HashSet<String>();
-	    for(Entry<String, LinkedHashMap<String, Double>> entry1 : precisionTable.entrySet()) {
+	    for(Entry<String, LinkedHashMap<String, Double>> entry1 : tfidfTable.entrySet()) {
 	        if(!entry1.getKey().startsWith(model))
 	            continue;
 	        int count = 0;
@@ -199,7 +293,7 @@ public class Parser {
 	                continue;
 	            //if(++count > NUM_FEATURES_PER_SENSE)
 	            //    break;
-	            if(entry2.getValue() != 1.0)
+	            if(entry2.getValue() < 2.2)
 	                break;
 	            features.add(entry2.getKey());
 	        }
@@ -246,13 +340,13 @@ public class Parser {
 				if(curWord.equals(model)){
 				    ArrayList<String> valueVector = new ArrayList<String>();
 				    String sense = getSense(line);
-				    int count = 0;
+				    /*int count = 0;
 				    for(int i = 0; i < sense.length(); i++) {
 				        if(sense.charAt(i) != '0')
 				            count++;
 				    }
 				    if(count > 1)
-				        continue;
+				        continue;*/
 				    valueVector.add(sense);
 
 					//String sentence = getSentence(sentenceDetector.sentDetect(line));
@@ -270,7 +364,7 @@ public class Parser {
 					}
 
 					if(!commit)
-					    valueVector.set(0, allZero);
+					    valueVector.set(0, mostFrequentLabels.get(curWord));
 
 					//if(commit || !training)
 					    out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");

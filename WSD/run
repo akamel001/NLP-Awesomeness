@@ -1,15 +1,69 @@
 #!/bin/bash
-for path in trainData/*.arff
+filenames=(begin.v
+rule.v
+play.v
+argument.n
+bank.n
+produce.v
+important.a
+judgment.n
+wash.v
+use.v
+lose.v
+provide.v
+suspend.v
+express.v
+audience.n
+party.n
+remain.v
+disc.n
+appear.v
+degree.n
+paper.n
+shelter.n
+talk.v
+climb.v
+organization.n
+arm.n
+expect.v
+watch.v
+atmosphere.n
+miss.v
+treat.v
+add.v
+source.n
+performance.n
+ask.v
+activate.v
+hot.a
+sort.n
+receive.v
+interest.n
+solid.a
+difficulty.n
+image.n
+write.v
+win.v
+decide.v
+simple.a
+note.v
+different.a
+hear.v
+mean.v
+eat.v
+operate.v
+difference.n
+encounter.v
+smell.v
+plan.n)
+for word in ${filenames[@]}
 do
-	word=`basename $path`
-	#java weka.classifiers.trees.Id3 -t trainData/$word -d models/$word.model
-	#java weka.classifiers.trees.Id3 -T testData/$word -l models/$word.model -p 1 > predictions/$word.pred
 	echo $word
-	java weka.classifiers.trees.J48 -t trainData/$word -T testData/$word -c 1 -classifications "weka.classifiers.evaluation.output.prediction.CSV" > predictions/$word.pred
+	java -classpath "C:\Program Files (x86)\Weka-3-7\weka.jar" weka.classifiers.trees.J48 -t trainData/$word.arff -T testData/$word.arff -c 1 -classifications "weka.classifiers.evaluation.output.prediction.CSV" > predictions/$word.pred
 		
 done
 rm kaggle.csv
-for path in predictions/*.pred
+for word in ${filenames[@]}
 do
-	tail -n +6 $path | awk -F"," '{print $3}' | cut -d: -f2 | awk -v ORS="" '{gsub(/./, "&\n"); print}' >> kaggle.csv
+	tail -n +6 predictions/$word.pred | awk -F"," '{print $3}' | cut -d: -f2 | awk -v ORS="" '{gsub(/./, "&\n"); print}' >> kaggle.csv
 done
