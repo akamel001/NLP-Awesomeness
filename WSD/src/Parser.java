@@ -1,6 +1,5 @@
 package src;
 
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -26,7 +25,7 @@ public class Parser {
 	public static ArrayList<String> trainDoc = null;
 	public static ArrayList<String> testDoc = null;
 	public static ArrayList<String> models = null;
-	public static HashSet<String> commonWords = null;
+	public static HashSet<String> stopWords = null;
 	public static HashMap<String, Integer> countWords = null;
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
@@ -36,43 +35,27 @@ public class Parser {
 	public static HashMap<String, LinkedHashMap<String, Double>> tfidfTable = null;
 	public static HashMap<String, String> mostFrequentLabels = null;
 
-	public static int windowSize = 25;
-	public static int NUM_FEATURES_PER_SENSE = 5;
+	public static int WINDOW_SIZE = 7; //How many words around the @TARGET@ word to index
+	public static double MIN_RELEVANCY = 2.2; //The minimum TF.IDF score for a word to be included as a feature
 
 	public static void main(String[] args) {
 		trainDoc = loadDoc("wsd-data/train.data");
 		Collections.sort(trainDoc, new LineComparator());
 		testDoc = loadDoc("wsd-data/test.data");
 		initSentenceDetector();
-		loadCommonWords();
+		loadStopWords();
 		buildMostFrequentLabelsTable();
-		//genBest();
 		loadModels();
-		countWords();
-		buildPrecisionTable("precision.map");
+		buildTFIDFTable();
+
+		System.out.println("Generating ARFF Files:");
 		for(String model : models)
 			handleModel(model);
 	}
 
-	private static void genBest() {
-	    try {
-	        // Create file
-        FileWriter fstream = new FileWriter("kaggle-perf.csv");
-        BufferedWriter out = new BufferedWriter(fstream);
-        for(String line : testDoc) {
-            String word = getWord(line);
-            String bestLabel = mostFrequentLabels.get(word);
-            for(int i = 0; i < bestLabel.length(); i++)
-                out.write(bestLabel.charAt(i) + "\n");
-        }
-        //Close the output stream
-        out.close();
-        } catch (Exception e){//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
-        }
-	}
-
-
+	/**
+	 * Initialize the OpenNLP sentence detector
+	 */
 	private static void initSentenceDetector() {
 	    try {
     	    modelIn = new FileInputStream("models/en-sent.bin");
@@ -83,10 +66,16 @@ public class Parser {
 	    }
 	}
 
+	/**
+	 * Increment a hashmap of integers
+	 */
 	private static void incrementMap(HashMap<String, Integer> map, String key) {
 	    map.put(key, map.containsKey(key) ? map.get(key) + 1 : 1);
 	}
 
+	/**
+	 * Build a hashmap that contains the labels most frequently assigned to a word
+	 */
 	private static void buildMostFrequentLabelsTable() {
 	    mostFrequentLabels = new HashMap<String, String>();
 
@@ -109,7 +98,8 @@ public class Parser {
         mostFrequentLabels.put(word,iter.next().getKey());
         labelCount.clear();
 
-        //There are some ties. The following values have been experimentally determined to improve performance.
+        //Some labels tie for the highest label count.
+        //The following values have been experimentally determined to improve performance.
 
         //mostFrequentLabels.put("write.v", "001000000");
         mostFrequentLabels.put("write.v", "000000001");
@@ -122,16 +112,16 @@ public class Parser {
 
 	}
 
-	private static void buildPrecisionTable(String filename) {
-	    ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>> serializer = new ObjectSerializer<HashMap<String, LinkedHashMap<String, Double>>>();
-	    /*precisionTable = serializer.readObject(filename);
-	    if(precisionTable != null)
-	        return;*/
+	/**
+	 * Builds a table of tf.idf values for each term-document pair
+	 * @param filename Filename to store the serialized table in
+	 */
+	private static void buildTFIDFTable() {
 	    tfTable = new LinkedHashMap<String, LinkedHashMap<String, Integer>>();
 	    dfTable = new HashMap<String, Integer>();
 
 
-	    System.out.println("Building Precision Table");
+	    System.out.println("Building term frequency table");
 	    HashMap<String, Integer> frequencyTable = new HashMap<String, Integer>();
 	    LinkedHashMap<String, Integer> curMap;
 	    String label = "", key = "";
@@ -151,10 +141,7 @@ public class Parser {
                     System.exit(0);
                 }
 
-                //for(Entry<String, Integer> entry : frequencyTable.entrySet())
-                //    curMap.put(entry.getKey(), frequencyTable.get(entry.getKey()) / (double)countWords.get(entry.getKey()));
-
-                System.out.println("Sorting Map:" + key);
+                System.out.println("Indexing Document:" + key);
                 curMap = sortIntHashMap(frequencyTable);
 
                 tfTable.put(key, curMap);
@@ -163,8 +150,8 @@ public class Parser {
                 frequencyTable.clear();
             }
 
-
-            if(windowSize > 0) {
+            //If the window-size is above zero, only check words within range
+            if(WINDOW_SIZE > 0) {
                 String sentence = getSentence(sentenceDetector.sentDetect(line));
                 ArrayList<String> words = getWords(sentence);
                 int i = 0;
@@ -174,49 +161,40 @@ public class Parser {
                 }
 
                 //right window
-                for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
-                    if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
+                for(int j = i; j < words.size() -1 && j <= i+(WINDOW_SIZE/2); ++j){
+                    if(!isWord(words.get(j)) || stopWords.contains(words.get(j).toLowerCase()))
                         continue;
                     if(!frequencyTable.containsKey(words.get(j).toLowerCase())) {
                         frequencyTable.put(words.get(j).toLowerCase(), 1);
-                        if(!dfTable.containsKey(words.get(j)))
-                            dfTable.put(words.get(j), 1);
-                        else
-                            dfTable.put(words.get(j), dfTable.get(words.get(j)) + 1);
+                        incrementMap(dfTable, words.get(j));
                     } else
                         frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
                 }
 
                 //left window
-                for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
-                    if(!isWord(words.get(j)) || commonWords.contains(words.get(j).toLowerCase()))
+                for(int j = i; j >= 0 && j >= i-(WINDOW_SIZE/2); --j){
+                    if(!isWord(words.get(j)) || stopWords.contains(words.get(j).toLowerCase()))
                         continue;
                     if(!frequencyTable.containsKey(words.get(j).toLowerCase())) {
                         frequencyTable.put(words.get(j).toLowerCase(), 1);
-                        if(!dfTable.containsKey(words.get(j)))
-                            dfTable.put(words.get(j), 1);
-                        else
-                            dfTable.put(words.get(j), dfTable.get(words.get(j)) + 1);
+                        incrementMap(dfTable, words.get(j));
                     } else
                         frequencyTable.put(words.get(j).toLowerCase(), frequencyTable.get(words.get(j).toLowerCase())+1);
                 }
             } else {
+                // If windowsize is 0 or less, use all words.
                 ArrayList<String> words = getWords(line);
                 for(String curWord : words) {
                     if(!isWord(curWord))
                         continue;
                     if(!frequencyTable.containsKey(curWord.toLowerCase())) {
                         frequencyTable.put(curWord.toLowerCase(), 1);
-                        if(!dfTable.containsKey(curWord))
-                            dfTable.put(curWord, 1);
-                        else
-                            dfTable.put(curWord, dfTable.get(curWord) + 1);
+                        incrementMap(dfTable, curWord);
                     } else
                         frequencyTable.put(curWord.toLowerCase(), frequencyTable.get(curWord.toLowerCase())+1);
                 }
             }
         }
-        //serializer.writeObject(precisionTable, filename);
 
         System.out.println("Calculating tf.idfs");
         tfidfTable = new LinkedHashMap<String, LinkedHashMap<String, Double>>();
@@ -224,6 +202,7 @@ public class Parser {
         for(Entry<String, LinkedHashMap<String, Integer>> entry1 : tfTable.entrySet()) {
             map = new LinkedHashMap<String, Double>();
             for(Entry<String, Integer> entry2 : entry1.getValue().entrySet()) {
+                //Calculate tf.idf weight
                 map.put(entry2.getKey(), (1+Math.log10(entry2.getValue())) * Math.log10((double)tfTable.size() / dfTable.get(entry2.getKey())));
             }
             map = sortDoubleHashMap(map);
@@ -231,48 +210,10 @@ public class Parser {
         }
 	}
 
-	private static void countWords() {
-	    System.out.println("Counting Words");
-		countWords = new HashMap<String, Integer>();
-		for(String line : trainDoc){
-			ArrayList<String> words = getWords(line);
-			int i = 0;
-			for(;i < words.size(); i++){
-				if(words.get(i).equals("@")){
-					i++;
-					break;
-				}
-			}
-			for(; i < words.size(); i++){
-
-				if(!isWord(words.get(i)))
-					continue;
-
-				if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
-					continue;
-				if(!countWords.containsKey(words.get(i).toLowerCase()))
-				    countWords.put(words.get(i).toLowerCase(), 1);
-				else
-				    countWords.put(words.get(i).toLowerCase(), countWords.get(words.get(i).toLowerCase())+1);
-			}
-		}
-	}
-
-	/*private static void filterCommonWords(double percent) {
-	       commonWords = sortIntHashMap(commonWords);
-	        HashMap<String, Integer> tmp = new HashMap<String, Integer>();
-	        Iterator<Entry<String, Integer>> it = commonWords.entrySet().iterator();
-	        int topPerc = (int) (commonWords.size() * percent);
-
-	        for(int i = 0; i < topPerc && it.hasNext(); i++){
-	            Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
-	            tmp.put(pairs.getKey(), pairs.getValue());
-	        }
-
-	        commonWords = tmp;
-	        System.out.println(commonWords.size() + " common words found: \n ===> " + commonWords);
-	}*/
-
+	/**
+	 * Creates ARFF file for a given word
+	 * @param model
+	 */
 	public static void handleModel(String model){
 		ArrayList<String> featVector = getFeatures(model);
 
@@ -281,6 +222,11 @@ public class Parser {
 		createARFF(featVector, model, false);
 	}
 
+	/**
+	 *
+	 * @param model
+	 * @return
+	 */
 	public static ArrayList<String> getFeatures(String model) {
 	    HashSet<String> features = new HashSet<String>();
 	    for(Entry<String, LinkedHashMap<String, Double>> entry1 : tfidfTable.entrySet()) {
@@ -288,11 +234,9 @@ public class Parser {
 	            continue;
 	        int count = 0;
 	        for(Entry<String, Double> entry2 : entry1.getValue().entrySet()) {
-	            if(commonWords.contains(entry2.getKey()))
+	            if(stopWords.contains(entry2.getKey()))
 	                continue;
-	            //if(++count > NUM_FEATURES_PER_SENSE)
-	            //    break;
-	            if(entry2.getValue() < 2.2)
+	            if(entry2.getValue() < MIN_RELEVANCY)
 	                break;
 	            features.add(entry2.getKey());
 	        }
@@ -303,6 +247,12 @@ public class Parser {
 	    return returnList;
 	}
 
+	/**
+	 * Generates an ARFF file for word
+	 * @param featVector The features to be used
+	 * @param model - The word
+	 * @param training - Whether we are building a training or test file
+	 */
 	public static void createARFF(ArrayList<String> featVector, String model, boolean training){
 		try {
 			HashSet<String> senses = new HashSet<String>();
@@ -331,50 +281,32 @@ public class Parser {
 			for(String feature: featVector)
 				out.println("@ATTRIBUTE #" + feature + "{0,1}");
 
-
-
 			out.println("\n@DATA");
 			for(String line : ((training)? trainDoc : testDoc)){
 				String curWord = getWord(line);
 				if(curWord.equals(model)){
 				    ArrayList<String> valueVector = new ArrayList<String>();
 				    String sense = getSense(line);
-				    /*int count = 0;
-				    for(int i = 0; i < sense.length(); i++) {
-				        if(sense.charAt(i) != '0')
-				            count++;
-				    }
-				    if(count > 1)
-				        continue;*/
 				    valueVector.add(sense);
 
-					//String sentence = getSentence(sentenceDetector.sentDetect(line));
-					ArrayList<String> words = getWords(line);//sentence);
+					ArrayList<String> words = getWords(line);
 
-					boolean commit = false;
+					boolean hasFeature = false;
 					for(int i = 0; i < featVector.size(); i++) {
 					    if(i < featVector.size()){
 	                        if(words.contains(featVector.get(i).toLowerCase())) {
 	                            valueVector.add("1");
-	                            commit = true;
+	                            hasFeature = true;
 	                        } else
 	                            valueVector.add("0");
 	                    }
 					}
 
-					if(!commit)
+					if(!hasFeature)
 					    valueVector.set(0, mostFrequentLabels.get(curWord));
 
-					//if(commit || !training)
-					    out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");
+					out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");
 				}
-			}
-			if(training) {
-			    ArrayList<String> valueVector = new ArrayList<String>();
-			    valueVector.add(allZero);
-			    for(String feature : featVector)
-			        valueVector.add("0");
-			    out.print(valueVector.toString().substring(1, valueVector.toString().length()-1) + "\n");
 			}
 
 			outFile.close();
@@ -385,6 +317,9 @@ public class Parser {
 		}
 	}
 
+	/**
+	 * Return the word-sense label of this line
+	 */
 	public static String getSense(String line){
 		String sense = "";
 		ArrayList<String> words = getWords(line);
@@ -398,6 +333,9 @@ public class Parser {
 		return sense;
 	}
 
+	/**
+	 * Returns a list of all words to train on
+	 */
 	public static void loadModels(){
 	    System.out.println("Loading Models");
 		models = new ArrayList<String>();
@@ -409,6 +347,9 @@ public class Parser {
 		Collections.sort(models);
 	}
 
+	/**
+	 * Determines if something is a word
+	 */
 	public static boolean isWord(String word){
 		for(int i = 0; i < word.length(); i++){
 			if(!Character.isLetter(word.charAt(i)))
@@ -417,6 +358,9 @@ public class Parser {
 		return true;
 	}
 
+	/**
+	 * Returns the word from a line
+	 */
 	public static String getWord(String line){
 		String word = "";
 
@@ -428,6 +372,10 @@ public class Parser {
 		}
 		return word;
 	}
+
+	/**
+     * Returns the sentence that contains the @TARGET@ word from a list of sentences
+	 */
 	public static String getSentence(String sentences[]){
 		for(String sentence : sentences){
 			ArrayList<String> words = getWords(sentence);
@@ -439,6 +387,10 @@ public class Parser {
 		return null;
 	}
 
+	/**
+	 * Sorts a hashmap of integers
+	 * @return
+	 */
 	public static LinkedHashMap<String, Integer> sortIntHashMap(HashMap<String, Integer> passedMap) {
 		List<String> mapKeys = new ArrayList<String>(passedMap.keySet());
 		List<Integer> mapValues = new ArrayList<Integer>(passedMap.values());
@@ -473,6 +425,11 @@ public class Parser {
 		return sortedMap;
 	}
 
+	/**
+	 * Sorts a hashmap of doubles.
+	 * NB: I would have liked to make this code more DRY, but this function has the same
+	 * erasure as the one above it when I give them the same name. This is a quick hack to make it work.
+	 */
 	public static LinkedHashMap<String, Double> sortDoubleHashMap(HashMap<String, Double> passedMap) {
         List<String> mapKeys = new ArrayList<String>(passedMap.keySet());
         List<Double> mapValues = new ArrayList<Double>(passedMap.values());
@@ -507,6 +464,9 @@ public class Parser {
         return sortedMap;
     }
 
+	/**
+	 * Loads a wsd-data file into an array list
+	 */
 	public static ArrayList<String> loadDoc(String filename) {
 		System.out.println("Reading File:" + filename);
 		Scanner scanner = null;
@@ -527,6 +487,10 @@ public class Parser {
 		return sentences;
 	}
 
+	/**
+	 * Returns a list of the words in a line, in lowercase
+	 * @return
+	 */
 	public static ArrayList<String> getWords(String line) {
 		if(line == null) return null;
 		ArrayList<String> words = new ArrayList<String>(Arrays.asList(line.split(" |\n")));
@@ -536,6 +500,9 @@ public class Parser {
 		return words;
 	}
 
+	/**
+	 * Used to sort the wsd-data
+	 */
 	public static class LineComparator implements Comparator<String> {
         @Override
         public int compare(String s1, String s2) {
@@ -552,71 +519,74 @@ public class Parser {
 
 	}
 
-	public static void loadCommonWords(){
-		commonWords = 					new HashSet<String>();
-		commonWords.add("the");			commonWords.add("be");
-		commonWords.add("to");			commonWords.add("of");
-		commonWords.add("and");			commonWords.add("a");
-		commonWords.add("in");			commonWords.add("that");
-		commonWords.add("have");		commonWords.add("i");
-		commonWords.add("for");			commonWords.add("not");
-		commonWords.add("on");			commonWords.add("with");
-		commonWords.add("he");			commonWords.add("as");
-		commonWords.add("you");			commonWords.add("do");
-		commonWords.add("this");		commonWords.add("but");
-		commonWords.add("his");			commonWords.add("by");
-		commonWords.add("from");		commonWords.add("they");
-		commonWords.add("we");			commonWords.add("say");
-		commonWords.add("her");			commonWords.add("she");
-		commonWords.add("or");			commonWords.add("an");
-		commonWords.add("will");		commonWords.add("my");
-		commonWords.add("all");			commonWords.add("would");
-		commonWords.add("there");		commonWords.add("their");
-		commonWords.add("what");		commonWords.add("so");
-		commonWords.add("up");			commonWords.add("out");
-		commonWords.add("if");			commonWords.add("about");
-		commonWords.add("who");			commonWords.add("get");
-		commonWords.add("which");		commonWords.add("go");
-		commonWords.add("me");			commonWords.add("the");
-		commonWords.add("is");			commonWords.add("are");
-		commonWords.add("it");			commonWords.add("when");
-		commonWords.add("can");			commonWords.add("was");
-		commonWords.add("only");		commonWords.add("its");
-		commonWords.add("at");			commonWords.add("has");
-		commonWords.add("also");		commonWords.add("them");
-		commonWords.add("same");		commonWords.add("our");
-		commonWords.add("had");			commonWords.add("then");
-		commonWords.add("than");		commonWords.add("any");
-		commonWords.add("when");		commonWords.add("were");
-		commonWords.add("way");			commonWords.add("yet");
-		commonWords.add("he");			commonWords.add("this");
-		commonWords.add("it");			commonWords.add("does");
-		commonWords.add("could");		commonWords.add("must");
-		commonWords.add("no");			commonWords.add("against");
-		commonWords.add("more");		commonWords.add("does");
-		commonWords.add("in");			commonWords.add("his");
-		commonWords.add("upon");		commonWords.add("very");
-		commonWords.add("been");		commonWords.add("some");
-		commonWords.add("too");			commonWords.add("into");
-		commonWords.add("and");			commonWords.add("us");
-		commonWords.add("him");			commonWords.add("may");
-		commonWords.add("over");		commonWords.add("why");
-		commonWords.add("too");			commonWords.add("own");
-		commonWords.add("over");		commonWords.add("many");
-		commonWords.add("because");		commonWords.add("before");
-		commonWords.add("like");		commonWords.add("into");
-		commonWords.add("said");		commonWords.add("these");
-		commonWords.add("less");		commonWords.add("much");
-		commonWords.add("new");			commonWords.add("each");
-		commonWords.add("your");		commonWords.add("just");
-		commonWords.add("but");			commonWords.add("there");
-		commonWords.add("at");			commonWords.add("you");
-		commonWords.add("see");			commonWords.add("should");
-		commonWords.add("how");			commonWords.add("bye");
-		commonWords.add("your");		commonWords.add("soon");
-		commonWords.add("a");			commonWords.add("did");
-		commonWords.add("such");		commonWords.add("those");
-		commonWords.add("what");		commonWords.add("as");
-		commonWords.add("she");			commonWords.add("by");
+	/**
+	 * Loads stop words, for exclusion
+	 */
+	public static void loadStopWords(){
+		stopWords = 				new HashSet<String>();
+		stopWords.add("the");		stopWords.add("be");
+		stopWords.add("to");		stopWords.add("of");
+		stopWords.add("and");		stopWords.add("a");
+		stopWords.add("in");		stopWords.add("that");
+		stopWords.add("have");		stopWords.add("i");
+		stopWords.add("for");		stopWords.add("not");
+		stopWords.add("on");		stopWords.add("with");
+		stopWords.add("he");		stopWords.add("as");
+		stopWords.add("you");		stopWords.add("do");
+		stopWords.add("this");		stopWords.add("but");
+		stopWords.add("his");		stopWords.add("by");
+		stopWords.add("from");		stopWords.add("they");
+		stopWords.add("we");		stopWords.add("say");
+		stopWords.add("her");		stopWords.add("she");
+		stopWords.add("or");		stopWords.add("an");
+		stopWords.add("will");		stopWords.add("my");
+		stopWords.add("all");		stopWords.add("would");
+		stopWords.add("there");		stopWords.add("their");
+		stopWords.add("what");		stopWords.add("so");
+		stopWords.add("up");		stopWords.add("out");
+		stopWords.add("if");		stopWords.add("about");
+		stopWords.add("who");		stopWords.add("get");
+		stopWords.add("which");		stopWords.add("go");
+		stopWords.add("me");		stopWords.add("the");
+		stopWords.add("is");		stopWords.add("are");
+		stopWords.add("it");		stopWords.add("when");
+		stopWords.add("can");		stopWords.add("was");
+		stopWords.add("only");		stopWords.add("its");
+		stopWords.add("at");		stopWords.add("has");
+		stopWords.add("also");		stopWords.add("them");
+		stopWords.add("same");		stopWords.add("our");
+		stopWords.add("had");		stopWords.add("then");
+		stopWords.add("than");		stopWords.add("any");
+		stopWords.add("when");		stopWords.add("were");
+		stopWords.add("way");		stopWords.add("yet");
+		stopWords.add("he");		stopWords.add("this");
+		stopWords.add("it");		stopWords.add("does");
+		stopWords.add("could");		stopWords.add("must");
+		stopWords.add("no");		stopWords.add("against");
+		stopWords.add("more");		stopWords.add("does");
+		stopWords.add("in");		stopWords.add("his");
+		stopWords.add("upon");		stopWords.add("very");
+		stopWords.add("been");		stopWords.add("some");
+		stopWords.add("too");		stopWords.add("into");
+		stopWords.add("and");		stopWords.add("us");
+		stopWords.add("him");		stopWords.add("may");
+		stopWords.add("over");		stopWords.add("why");
+		stopWords.add("too");		stopWords.add("own");
+		stopWords.add("over");		stopWords.add("many");
+		stopWords.add("because");	stopWords.add("before");
+		stopWords.add("like");		stopWords.add("into");
+		stopWords.add("said");		stopWords.add("these");
+		stopWords.add("less");		stopWords.add("much");
+		stopWords.add("new");		stopWords.add("each");
+		stopWords.add("your");		stopWords.add("just");
+		stopWords.add("but");		stopWords.add("there");
+		stopWords.add("at");		stopWords.add("you");
+		stopWords.add("see");		stopWords.add("should");
+		stopWords.add("how");		stopWords.add("bye");
+		stopWords.add("your");		stopWords.add("soon");
+		stopWords.add("a");			stopWords.add("did");
+		stopWords.add("such");		stopWords.add("those");
+		stopWords.add("what");		stopWords.add("as");
+		stopWords.add("she");		stopWords.add("by");
 	}
 }
