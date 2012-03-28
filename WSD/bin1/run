@@ -1,0 +1,15 @@
+#!/bin/bash
+for path in trainData/*.arff
+do
+	word=`basename $path`
+	#java weka.classifiers.trees.Id3 -t trainData/$word -d models/$word.model
+	#java weka.classifiers.trees.Id3 -T testData/$word -l models/$word.model -p 1 > predictions/$word.pred
+	echo $word
+	java weka.classifiers.trees.J48 -t trainData/$word -T testData/$word -c 1 -classifications "weka.classifiers.evaluation.output.prediction.CSV" > predictions/$word.pred
+		
+done
+rm kaggle.csv
+for path in predictions/*.pred
+do
+	tail -n +6 $path | awk -F"," '{print $3}' | cut -d: -f2 | awk -v ORS="" '{gsub(/./, "&\n"); print}' >> kaggle.csv
+done

@@ -27,7 +27,6 @@ public class Parser {
 	public static ArrayList<String> testDoc = null;
 	public static ArrayList<String> models = null;
 	public static HashSet<String> commonWords = null;
-//	public static HashMap<String, Integer> commonWords = null;
 	public static HashMap<String, Integer> countWords = null;
 	public static InputStream modelIn = null;
 	public static SentenceModel sm = null;
@@ -409,54 +408,6 @@ public class Parser {
 		}
 		Collections.sort(models);
 	}
-
-	/*public static HashMap<String, Integer> getHashMap(String curModel){
-		System.out.println(curModel);
-		try {
-			HashMap<String, Integer> occ = new HashMap<String, Integer>();
-			modelIn = new FileInputStream("models/en-sent.bin");
-			sm = new SentenceModel(modelIn);
-			sentenceDetector = new SentenceDetectorME(sm);
-			for(String line : trainDoc){
-				String target = getWord(line);
-				if(target.equals(curModel)){
-					String sentence = getSentence(sentenceDetector.sentDetect(line));
-					ArrayList<String> words = getWords(sentence);
-					int i =0;
-					for(;i < words.size();i++){
-						if(words.get(i).startsWith("@") && words.get(i).endsWith("@"))
-							break;
-					}
-
-					//right window
-					for(int j = i; j < words.size() -1 && j <= i+(windowSize/2); ++j){
-						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j)))
-							continue;
-						if(!occ.containsKey(words.get(j)))
-							occ.put(words.get(j), 1);
-						else
-							occ.put(words.get(j), occ.get(words.get(j))+1);
-					}
-
-					//left window
-					for(int j = i; j >= 0 && j >= i-(windowSize/2); --j){
-						if(!isWord(words.get(j)) || commonWords.containsKey(words.get(j)))
-							continue;
-						if(!occ.containsKey(words.get(j)))
-							occ.put(words.get(j), 1);
-						else
-							occ.put(words.get(j), occ.get(words.get(j))+1);
-					}
-				}
-			}
-			modelIn.close();
-			return sortIntHashMap(occ);
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}*/
 
 	public static boolean isWord(String word){
 		for(int i = 0; i < word.length(); i++){
