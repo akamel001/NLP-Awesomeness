@@ -38,6 +38,17 @@ public class Parser {
 	public static int WINDOW_SIZE = 7; //How many words around the @TARGET@ word to index
 	public static double MIN_RELEVANCY = 2.2; //The minimum TF.IDF score for a word to be included as a feature
 
+	public static String getWord2(String word) {
+	    String result = "";
+	    for(int i = 0; i < word.length(); i++) {
+	        if(Character.isDigit(word.charAt(i)))
+	            break;
+	        result += word.charAt(i);
+	    }
+	    System.out.println(result);
+	    return result;
+	}
+
 	public static void main(String[] args) {
 		trainDoc = loadDoc("wsd-data/train.data");
 		Collections.sort(trainDoc, new LineComparator());
@@ -51,6 +62,40 @@ public class Parser {
 		System.out.println("Generating ARFF Files:");
 		for(String model : models)
 			handleModel(model);
+	}
+
+	/**
+	 * Prints most relevant features for use in report
+	 */
+	private static void printReleventFeatures() {
+        String word = null;
+        HashMap<String, LinkedHashMap<String, Double>> newMap = new HashMap<String, LinkedHashMap<String, Double>>();
+        LinkedHashMap<String, Double> curMap = new LinkedHashMap<String, Double>();
+        for(Entry<String, LinkedHashMap<String, Double>> entry1 : tfidfTable.entrySet()) {
+            String newWord = getWord2(entry1.getKey());
+            if(!newWord.equals(word) && word != null) {
+                newMap.put(word, curMap);
+                curMap = new LinkedHashMap<String, Double>();
+            }
+            word = newWord;
+            for(Entry<String, Double> entry2 : entry1.getValue().entrySet()) {
+                if(curMap.containsKey(entry2.getKey()))
+                    curMap.put(entry2.getKey(), Math.max(entry2.getValue(), curMap.get(entry2.getKey())));
+                else
+                    curMap.put(entry2.getKey(),entry2.getValue());
+            }
+        }
+        newMap.put(word, curMap);
+
+        for(Entry<String, LinkedHashMap<String, Double>> entry : newMap.entrySet()) {
+            int count = 0;
+            Iterator<Entry<String, Double>> iter = entry.getValue().entrySet().iterator();
+            while(iter.hasNext() && count < 3) {
+                Entry<String, Double> next = iter.next();
+                System.out.println(entry.getKey() + "," + next.getKey() + "," + next.getValue() );
+                count++;
+            }
+        }
 	}
 
 	/**
