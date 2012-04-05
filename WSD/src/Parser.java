@@ -34,7 +34,6 @@ public class Parser {
 	public static HashMap<String, LinkedHashMap<String, Integer>> tfTable = null;
 	public static HashMap<String, LinkedHashMap<String, Double>> tfidfTable = null;
 	public static HashMap<String, String> mostFrequentLabels = null;
-
 	public static int WINDOW_SIZE = 7; //How many words around the @TARGET@ word to index
 	public static double MIN_RELEVANCY = 2.2; //The minimum TF.IDF score for a word to be included as a feature
 
@@ -50,6 +49,7 @@ public class Parser {
 	}
 
 	public static void main(String[] args) {
+		
 		trainDoc = loadDoc("wsd-data/train.data");
 		Collections.sort(trainDoc, new LineComparator());
 		testDoc = loadDoc("wsd-data/test.data");
@@ -102,6 +102,7 @@ public class Parser {
 	 * Initialize the OpenNLP sentence detector
 	 */
 	private static void initSentenceDetector() {
+
 	    try {
     	    modelIn = new FileInputStream("models/en-sent.bin");
             sm = new SentenceModel(modelIn);
@@ -198,6 +199,7 @@ public class Parser {
             //If the window-size is above zero, only check words within range
             if(WINDOW_SIZE > 0) {
                 String sentence = getSentence(sentenceDetector.sentDetect(line));
+
                 ArrayList<String> words = getWords(sentence);
                 int i = 0;
                 for(;i < words.size();i++){
@@ -208,7 +210,7 @@ public class Parser {
                 //right window
                 for(int j = i; j < words.size() -1 && j <= i+(WINDOW_SIZE/2); ++j){
                     if(!isWord(words.get(j)) || stopWords.contains(words.get(j).toLowerCase()))
-                        continue;
+                		continue;
                     if(!frequencyTable.containsKey(words.get(j).toLowerCase())) {
                         frequencyTable.put(words.get(j).toLowerCase(), 1);
                         incrementMap(dfTable, words.get(j));
@@ -277,7 +279,7 @@ public class Parser {
 	    for(Entry<String, LinkedHashMap<String, Double>> entry1 : tfidfTable.entrySet()) {
 	        if(!entry1.getKey().startsWith(model))
 	            continue;
-	        int count = 0;
+
 	        for(Entry<String, Double> entry2 : entry1.getValue().entrySet()) {
 	            if(stopWords.contains(entry2.getKey()))
 	                continue;
@@ -310,7 +312,11 @@ public class Parser {
 			for(String line : trainDoc){
 				String curWord = getWord(line);
 				if(curWord.equals(model)){
-					senses.add(getSense(line));
+					String sense = getSense(line);
+					int count = countOccurrences(sense, '1');
+					if(count > 1 )
+						System.out.println(sense);
+					senses.add(sense);
 				}
 			}
 
@@ -321,7 +327,7 @@ public class Parser {
 				allZero += "0";
 			senses.add(allZero);
 
-			out.println("\n@ATTRIBUTE sense " + senses.toString().replace("[", "{").replace("]", "}"));
+			out.println("\n@ATTRIBUTE senses " + senses.toString().replace("[", "{").replace("]", "}"));
 
 			for(String feature: featVector)
 				out.println("@ATTRIBUTE #" + feature + "{0,1}");
@@ -361,6 +367,19 @@ public class Parser {
 			e.printStackTrace();
 		}
 	}
+	
+	public static int countOccurrences(String haystack, char needle)
+	{
+	    int count = 0;
+	    for (int i=0; i < haystack.length(); i++)
+	    {
+	        if (haystack.charAt(i) == needle)
+	        {
+	             count++;
+	        }
+	    }
+	    return count;
+	}
 
 	/**
 	 * Return the word-sense label of this line
@@ -378,6 +397,42 @@ public class Parser {
 		return sense;
 	}
 
+	public static ArrayList<String> getAllSenses(String line){
+		String sense = "";
+		ArrayList<String> words = getWords(line);
+
+		for(int i = 1; i < words.size(); i++){
+			if(!words.get(i).equals("@"))
+				sense += words.get(i);
+			else
+				break;
+		}
+		
+		ArrayList<String> senses = new ArrayList<String>();
+		
+		int count = countOccurrences(sense, '1');
+
+		if(count > 1 ){
+			for(int i = 0; i < sense.length(); i ++){
+				String newSense = "";
+				for (int k = 0; k < sense.length(); k++){
+					if(sense.charAt(i) == '1'){
+						if(i == k)
+							newSense += "1";
+						else
+							newSense += "0";
+					}
+				}
+				
+				if(!newSense.equals(""))
+					senses.add(newSense);
+			}
+		}else
+			senses.add(sense);
+		
+		return senses;
+	}
+	
 	/**
 	 * Returns a list of all words to train on
 	 */
