@@ -2,7 +2,7 @@ package org.tartarus.snowball;
 
 public class TestApp {
 
-    public static String main(String word) throws Throwable {
+    public static String main(String word) throws Exception {
 
 
         Class stemClass = Class.forName("org.tartarus.snowball.ext.englishStemmer");
