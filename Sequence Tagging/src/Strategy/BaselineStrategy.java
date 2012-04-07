@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 
 import org.tartarus.snowball.TestApp;
 
+import util.Util;
+
 public class BaselineStrategy extends ParseStrategy {
 
     private HashMap<String, HashMap<String, Integer>> wordsMap = new HashMap<String, HashMap<String, Integer>>();
@@ -37,23 +39,8 @@ public class BaselineStrategy extends ParseStrategy {
             return;
         }
 
-        HashMap<String, Integer> T;
-        if (wordsMap.containsKey(word)) {
-            T = wordsMap.get(word);
-            incrementMap(T, tag);
-        } else {
-            HashMap<String, Integer> tagsMap = new HashMap<String, Integer>();
-            tagsMap.put(tag, 1);
-            wordsMap.put(word, tagsMap);
-        }
-        incrementMap(tagCount,tag);
-    }
-
-    /**
-     * Increment a hashmap of integers
-     */
-    private void incrementMap(HashMap<String, Integer> map, String key) {
-        map.put(key, map.containsKey(key) ? map.get(key) + 1 : 1);
+        Util.wordTagCount(wordsMap, word, tag);
+        Util.incrementMap(tagCount,tag);
     }
 
     @Override

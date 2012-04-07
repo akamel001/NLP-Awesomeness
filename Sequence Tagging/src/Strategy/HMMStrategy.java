@@ -1,10 +1,18 @@
 package Strategy;
 
+import java.util.LinkedList;
+
+import HMM.HMM;
+import HMM.HMM.Pair;
+
 public class HMMStrategy extends ParseStrategy {
 
-    public HMMStrategy(String trainPath, String testPath, String kaggleOutput) {
+    private LinkedList<Pair> pairs = new LinkedList<Pair>();
+    private int n;
+
+    public HMMStrategy(String trainPath, String testPath, String kaggleOutput, int n) {
         super(trainPath, testPath, kaggleOutput);
-        // TODO Auto-generated constructor stub
+        this.n = n;
     }
 
     @Override
@@ -12,7 +20,7 @@ public class HMMStrategy extends ParseStrategy {
         String[] split = line.split("[ ]+");
         String word = split[0];
         String tag = split[1];
-
+        pairs.add(new Pair(word, tag));
     }
 
     @Override
@@ -24,8 +32,7 @@ public class HMMStrategy extends ParseStrategy {
 
     @Override
     public void postProcess() {
-        // TODO Auto-generated method stub
-
+        HMM hmm = new HMM(n, pairs);
     }
 
 }
