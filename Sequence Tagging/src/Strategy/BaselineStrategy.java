@@ -88,6 +88,6 @@ public class BaselineStrategy extends ParseStrategy {
         else
             tag = mostCommonTag;
 
-        return tag;
+        return tag + " " + word;
     }
 }
