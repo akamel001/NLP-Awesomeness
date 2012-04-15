@@ -15,8 +15,9 @@ public class HMM {
     private HashSet<String> tags = new HashSet<String>();
     private HashMap<String, Integer> nGramCount = new HashMap<String, Integer>();
     private HashMap<String, Integer> nMinusOneGramCount = new HashMap<String, Integer>();
-    private HashMap<String, HashMap<String, Integer>> wordsMap = new HashMap<String, HashMap<String, Integer>>();
+    private HashMap<String, HashMap<String, Integer>> tagsMap = new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> wordCount = new HashMap<String, Integer>();
+    private HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
 
     public HMM(int n, List<Pair> pairs) {
         this.n = n;
@@ -28,41 +29,53 @@ public class HMM {
             tags.add(pair.tag);
         }
 
-        //Find transition probabilities
-        countGrams(n, nGramCount);
+        //Find tag transition probabilities
+        countGrams(n, nGramCount, false);
         if(n > 1)
-            countGrams(n-1, nMinusOneGramCount);
+            countGrams(n-1, nMinusOneGramCount, false);
 
         //Find emission probabilities
         for(Pair pair : pairs) {
-            Util.wordTagCount(wordsMap, pair.word, pair.tag);
+            Util.tagWordCount(tagsMap, pair.word, pair.tag);
             Util.incrementMap(wordCount, pair.word);
+            Util.incrementMap(tagCount, pair.tag);
         }
     }
 
-    public double getTransitionProb(List<Pair> nGram) {
+    /**
+     * Gets the probability of a tag, given the n-1 previous tags
+     * @param nGram
+     * @return
+     */
+    public double getTransitionProb(List<String> nGram) {
         if(!nGramCount.containsKey(nGram.toString()))
             return 0;
         if(n > 1)
-            return (double)nGramCount.get(nGram) / nMinusOneGramCount.get(nGram.remove(nGram.size()-1));
+            return (double)nGramCount.get(nGram.toString()) / nMinusOneGramCount.get(nGram.remove(nGram.size()-1).toString());
         else
-            return nGramCount.get(nGram);
+            return nGramCount.get(nGram) / tags.size();
     }
 
+    /**
+     * Returns the probability of a word given its tag
+     * @param word
+     * @param tag
+     * @return
+     */
     public double getEmissionProb(String word, String tag) {
         if(wordCount.get(word) == 0)
             return 0;
-        return wordsMap.get(word).get(tag) / wordCount.get(word);
+        return tagsMap.get(tag).get(word) / tagCount.get(tag);
     }
 
-    public void countGrams(int n, HashMap<String, Integer> count) {
-        List<Pair> nGram = new ArrayList<Pair>();
+    public void countGrams(int n, HashMap<String, Integer> count, boolean word) {
+        List<String> nGram = new ArrayList<String>();
         int i;
         for(i = 0; i < n; i++)
-            nGram.add(pairs.get(i));
+            nGram.add(pairs.get(i).getContent(word));
         for(i++;i < pairs.size(); i++) {
             nGram.remove(0);
-            nGram.add(pairs.get(i));
+            nGram.add(pairs.get(i).getContent(word));
             Util.incrementMap(count, nGram.toString());
         }
     }
@@ -79,6 +92,13 @@ public class HMM {
         public Pair(String word, String tag) {
             this.word = word;
             this.tag = tag;
+        }
+        
+        public String getContent(boolean word) {
+            if(word)
+                return this.word;
+            else
+                return this.tag;
         }
     }
 }

@@ -6,7 +6,7 @@ package project3;
 
 import java.io.IOException;
 
-import Strategy.BaselineStrategy;
+import Strategy.HMMStrategy;
 import Strategy.ParseStrategy;
 
 /**
@@ -16,7 +16,7 @@ import Strategy.ParseStrategy;
 public class Project3 {
 
     public static void main(String[] args) throws IOException {
-        ParseStrategy strategy = new BaselineStrategy("pos_files/train.pos", "pos_files/test-obs.pos", "kaggle.csv");
+        ParseStrategy strategy = new HMMStrategy("pos_files/train.pos", "pos_files/test-obs.pos", "kaggle.csv", 1);
         strategy.execute();
     }
 }
