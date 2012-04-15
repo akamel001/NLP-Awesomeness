@@ -26,14 +26,6 @@ public class BaselineStrategy extends ParseStrategy {
         String[] tokens = line.split("[ ]+");
         String tag = tokens[0];
         String word = tokens[1];
-        //stemm the word
-        try {
-            TestApp.main(word);
-        } catch (Exception e) {
-            System.err.println("Stemmer threw exception :(");
-            e.printStackTrace();
-            System.exit(1);
-        }
 
         if (word.matches("<s>")) {
             return;
