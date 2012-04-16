@@ -69,9 +69,7 @@ public class HMM {
     }
     
     public double getTagProb(String tag)
-    {
-        return tagCount.get(tag) / (double)pairs.size();
-    }
+    { return tagCount.get(tag) / (double)pairs.size(); }
 
     public void countGrams(int n, HashMap<String, Integer> count, boolean word) {
         List<String> nGram = new ArrayList<String>();
@@ -85,9 +83,60 @@ public class HMM {
         }
     }
 
-    public String predict(String word) {
-        //TODO: Viterbi
-        return null;
+    public ArrayList<String> predict(List<String> nGram) {
+        //Initialization 
+    	int c = tags.size();
+    	double[][] score = new double[c][n];
+    	int [][] bptr = new int[c][n];
+    	
+    	ArrayList<String> myTags= new ArrayList<String>();
+    	myTags.addAll(tags);
+    	
+    	for(int i = 1; i <= c; i++){
+    		score[i][1] = getTagProb(myTags.get(i)) * getEmissionProb(nGram.get(0), myTags.get(i));;
+    		bptr[i][1] = 0;
+    	}
+
+    	
+    	//Iteration 
+    	for(int t = 2; t <= n; t++){
+    		for(int i = 1; i <= c; i++){
+    			
+    			double bestProb = 0.0;
+    			int bestIndex = 0;
+    			for(int j = 1; j <= c; j++){
+    				double curProb = score[j][t-1] * getTransitionProb(nGram) 
+    											   * getEmissionProb(nGram.get(t-1), myTags.get(i));
+    				if(bestProb < curProb){
+    					bestProb = curProb;
+    					bestIndex = j;
+    				}	
+    			}
+    			score[i][t] = bestProb;
+    			bptr[i][t] = bestIndex;
+    		}
+    	}
+    	//Identify 
+    	int[] t = new int[n];
+    	
+    	int maxIndx= 0;
+    	double max = 0.0;
+		for(int i = 0; i <= c; i++){
+    		if(max  < score[i][n])
+    			maxIndx = i;
+    	}
+    	
+    	t[n] = maxIndx;
+    	
+    	for(int i= n-1; i >= 1; i--)
+    		t[i] = bptr[t[i+1]] [i+1];
+    	
+    	ArrayList<String> results = new ArrayList<String>();
+    	
+    	for(int j = n; j >= 1; j--)
+    		results.add(myTags.get(t[j]));
+    	
+        return results;
     }
 
     public static class Pair {
