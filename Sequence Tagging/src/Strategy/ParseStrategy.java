@@ -66,4 +66,12 @@ public abstract class ParseStrategy {
     public String getTestPath() {
         return testPath;
     }
+
+    public ArrayList<String> getKaggleOutput() {
+        return kaggleOutput;
+    }
+
+    public void setKaggleOutput(ArrayList<String> kaggleOutput) {
+        this.kaggleOutput = kaggleOutput;
+    }
 }

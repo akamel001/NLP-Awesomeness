@@ -75,7 +75,12 @@ public class HMM implements Serializable {
     public double getEmissionProb(String word, String tag) {
         if(!tagsMap.containsKey(tag))
             return 0;
-        return tagsMap.get(tag).get(word) / (double)tagCount.get(tag);
+        Integer numerator = tagsMap.get(tag).get(word);
+        Double denominator = (double)tagCount.get(tag);
+        if(numerator == null || denominator == null)
+            return 0;
+        return numerator/denominator;
+        //return tagsMap.get(tag).get(word) / (double)tagCount.get(tag);
     }
 
     public double getTagProb(String tag) {
