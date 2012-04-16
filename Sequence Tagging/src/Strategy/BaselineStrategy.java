@@ -1,11 +1,6 @@
 package Strategy;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.tartarus.snowball.TestApp;
 
 import util.Util;
 
@@ -37,39 +32,8 @@ public class BaselineStrategy extends ParseStrategy {
 
     @Override
     public void postProcess() {
-        String tag = "";
-        String word;
-        Iterator<Entry<String, HashMap<String, Integer>>> e = wordsMap.entrySet().iterator();
-        while (e.hasNext()) {
-            Map.Entry<String, HashMap<String, Integer>> entry = (Entry<String, HashMap<String, Integer>>) e.next();
-
-            word = entry.getKey();
-            System.out.print("word = " + word);
-
-            HashMap<String, Integer> temp = entry.getValue(); //file tree map
-            Iterator<Entry<String, Integer>> ent = temp.entrySet().iterator();
-            int count = 0;
-            while (ent.hasNext()) {
-                Map.Entry<String, Integer> entr = (Map.Entry<String, Integer>) ent.next();
-
-                if (entr.getValue() >= count) {
-                    tag = entr.getKey();
-                    count = entr.getValue();
-                }
-            }
-            System.out.print("  tag = " + tag);
-            System.out.println("  count = " + count);
-            finalMap.put(word, tag);
-        }
-        String maxKey = null;
-        for (Entry<String, Integer> entry : tagCount.entrySet()) {
-            int maxValue = -1;
-            if(entry.getValue() > maxValue) {
-                maxValue = entry.getValue();
-                maxKey = entry.getKey();
-            }
-        }
-        mostCommonTag = maxKey;
+        Util.mostCommonTagMap(wordsMap, finalMap);
+        mostCommonTag = Util.mostCommonTag(tagCount);
     }
 
     @Override

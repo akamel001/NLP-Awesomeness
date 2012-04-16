@@ -17,8 +17,11 @@ public class HMM implements Serializable {
     private HashMap<String, Integer> nGramCount = new HashMap<String, Integer>();
     private HashMap<String, Integer> nMinusOneGramCount = new HashMap<String, Integer>();
     private HashMap<String, HashMap<String, Integer>> tagsMap = new HashMap<String, HashMap<String, Integer>>();
+    private HashMap<String, HashMap<String, Integer>> wordsMap = new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, Integer> wordCount = new HashMap<String, Integer>();
     private HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
+    private HashMap<String, String> mostCommonTagMap = new HashMap<String, String>();
+    private String mostCommonTag = null;
 
     public HMM(int n, List<Pair> pairs) {
         long time = System.currentTimeMillis();
@@ -46,9 +49,12 @@ public class HMM implements Serializable {
         System.out.println("Finding emission probabilities");
         for(Pair pair : pairs) {
             Util.tagWordCount(tagsMap, pair.word, pair.tag);
+            Util.wordTagCount(wordsMap, pair.word, pair.tag);
             Util.incrementMap(wordCount, pair.word);
             Util.incrementMap(tagCount, pair.tag);
         }
+        Util.mostCommonTagMap(wordsMap, mostCommonTagMap);
+        mostCommonTag = Util.mostCommonTag(tagCount);
         System.out.println((System.currentTimeMillis() - time)/1000.0);
     }
 
@@ -95,11 +101,12 @@ public class HMM implements Serializable {
         int i;
         for(i = 0; i < n; i++)
             nGram.add(pairs.get(i).getContent(word));
-        for(i++;i < pairs.size(); i++) {
-            nGram.remove(0);
-            nGram.add(pairs.get(i).getContent(word));
+        for(;i < pairs.size(); i++) {
             Util.incrementMap(count, nGram.toString());
+            nGram.add(pairs.get(i).getContent(word));
+            nGram.remove(0);
         }
+        Util.incrementMap(count, nGram.toString());
     }
 
     public ArrayList<String> predict(List<String> nGram) {
@@ -112,27 +119,43 @@ public class HMM implements Serializable {
     	myTags.addAll(tags);
 
     	for(int i = 0; i < c; i++){
-    		score[i][0] = getTagProb(myTags.get(i)) * getEmissionProb(nGram.get(0), myTags.get(i));
+    	    double tagProb = getTagProb(myTags.get(i));
+    	    double emProb = getEmissionProb(nGram.get(0), myTags.get(i));
+    		score[i][0] = tagProb * emProb;
+    		/*if(score[i][0] == 0 && tagProb > 0 && emProb > 0) {
+                System.err.println("UNDERFLOW");
+                System.exit(1);
+            }*/
     		bptr[i][0] = 0;
     	}
-
 
     	//Iteration
     	for(int t = 1; t < n; t++){
     		for(int i = 0; i < c; i++){
 
-    			double bestProb = 0.0;
+    			double bestProb = Double.NEGATIVE_INFINITY;
     			int bestIndex = 0;
     			for(int j = 0; j < c; j++){
-    			    //nGram.get(t-1);
-    				double curProb = score[j][t-1] * getTransitionProb(nGram)
-    											   * getEmissionProb(nGram.get(t-1), myTags.get(i));
-    				if(bestProb < curProb){
+    			    ArrayList<String> tagGram = new ArrayList<String>();
+    			    tagGram.add(myTags.get(j));
+    			    tagGram.add(myTags.get(i));
+    			    double transProb = getTransitionProb(tagGram);
+    				double curProb = score[j][t-1] * transProb;
+    				/*if(curProb == 0 && score[j][t-1] > 0 && transProb > 0) {
+    				    System.err.println("UNDERFLOW");
+    				    System.exit(1);
+    				}*/
+    				if(curProb > bestProb){
     					bestProb = curProb;
     					bestIndex = j;
     				}
     			}
-    			score[i][t] = bestProb;
+    			double emProb = getEmissionProb(nGram.get(t), myTags.get(i));
+    			score[i][t] = bestProb * emProb;
+    			/*if(score[i][t] == 0 && bestProb > 0 && emProb > 0) {
+                    System.err.println("UNDERFLOW");
+                    System.exit(1);
+                }*/
     			bptr[i][t] = bestIndex;
     		}
     	}
@@ -143,19 +166,26 @@ public class HMM implements Serializable {
 	        int maxIndx= Integer.MIN_VALUE;
 	        double max = Double.NEGATIVE_INFINITY;
     		for(int i = 0; i < c; i++){
-        		if(max  < score[i][j])
+        		if(score[i][j] > max) {
         			maxIndx = i;
+        			max = score[i][j];
+        		}
         	}
     		t[j] = maxIndx;
     	}
 
-    	for(int i = n-2; i >= 0; i--)
-    		t[i] = bptr[t[i+1]] [i+1];
+    	//CHECKME
+    	/*for(int i = n-2; i >= 0; i--)
+    		t[i] = bptr[t[i+1]] [i+1];*/
 
     	ArrayList<String> results = new ArrayList<String>();
 
-    	for(int j = n-1; j >= 0; j--)
-    		results.add(myTags.get(t[j]));
+    	for(int i = 0; i < n; i++)
+    		results.add(myTags.get(t[i]));
+    	if(results.get(results.size()-1).equals("<s>")) {
+    	    results.remove(results.size()-1);
+    	    results.add(mostCommonTagMap.get(nGram.get(n-1)));
+    	}
 
         return results;
     }

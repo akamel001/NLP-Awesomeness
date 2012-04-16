@@ -35,8 +35,8 @@ public class HMMStrategy extends ParseStrategy {
             prevWords.remove(0);
         }
         if(word.equals("<s>"))
-            return "<s>";
-        return hmm.predict(prevWords).get(n-1);
+            return "<s> <s>";
+        return hmm.predict(prevWords).get(n-1) + " " + word;
     }
 
     @Override
