@@ -29,11 +29,13 @@ public class HMMStrategy extends ParseStrategy {
 
     @Override
     public String test(String word) {
+        System.out.println(word);
+        prevWords.add(word);
+        if(prevWords.size() > n) {
+            prevWords.remove(0);
+        }
         if(word.equals("<s>"))
             return "<s>";
-        prevWords.add(word);
-        if(prevWords.size() > n)
-            prevWords.remove(0);
         return hmm.predict(prevWords).get(n-1);
     }
 
