@@ -45,7 +45,7 @@ public abstract class ParseStrategy {
         }
     }
 
-    final public void execute() throws IOException {
+    public void execute() throws IOException {
         parseFile(trainPath, true);
         postProcess();
         parseFile(testPath, false);
@@ -57,5 +57,13 @@ public abstract class ParseStrategy {
         for(String line : kaggleOutput)
             out.write(line +"\n");
         out.close();
+    }
+
+    public String getTrainPath() {
+        return trainPath;
+    }
+
+    public String getTestPath() {
+        return testPath;
     }
 }
