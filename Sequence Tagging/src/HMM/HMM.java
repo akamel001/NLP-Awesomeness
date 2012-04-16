@@ -184,7 +184,11 @@ public class HMM implements Serializable {
     		results.add(myTags.get(t[i]));
     	if(results.get(results.size()-1).equals("<s>")) {
     	    results.remove(results.size()-1);
-    	    results.add(mostCommonTagMap.get(nGram.get(n-1)));
+    	    if(mostCommonTagMap.containsKey(nGram.get(n-1))) {
+    	        results.add(mostCommonTagMap.get(nGram.get(n-1)));
+    	    } else {
+    	        results.add(mostCommonTag);
+    	    }
     	}
 
         return results;
