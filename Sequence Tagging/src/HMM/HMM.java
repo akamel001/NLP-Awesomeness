@@ -65,7 +65,12 @@ public class HMM {
     public double getEmissionProb(String word, String tag) {
         if(wordCount.get(word) == 0)
             return 0;
-        return tagsMap.get(tag).get(word) / tagCount.get(tag);
+        return tagsMap.get(tag).get(word) / (double)tagCount.get(tag);
+    }
+    
+    public double getTagProb(String tag)
+    {
+        return tagCount.get(tag) / (double)pairs.size();
     }
 
     public void countGrams(int n, HashMap<String, Integer> count, boolean word) {
