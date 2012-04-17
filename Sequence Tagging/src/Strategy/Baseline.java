@@ -1,19 +1,21 @@
 package Strategy;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import util.Util;
 
-public class BaselineStrategy extends ParseStrategy {
+public class Baseline extends Parser {
 
     private HashMap<String, HashMap<String, Integer>> wordsMap = new HashMap<String, HashMap<String, Integer>>();
     private HashMap<String, String> finalMap = new HashMap<String, String>();
     private HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
     private String mostCommonTag = null;
 
-    public BaselineStrategy(String trainPath, String testPath,
+    public Baseline(String trainPath, String testPath,
             String kaggleOutput) {
         super(trainPath, testPath, kaggleOutput);
     }
@@ -78,5 +80,10 @@ public class BaselineStrategy extends ParseStrategy {
             tag = mostCommonTag;
 
         return tag + " " + word;
+    }
+
+    public static void main(String[] args) throws IOException {
+        Baseline strategy = new Baseline("pos_files/train.pos", "pos_files/test-obs.pos", "kaggle.csv");
+        strategy.execute();
     }
 }

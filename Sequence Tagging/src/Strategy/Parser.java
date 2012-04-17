@@ -10,18 +10,17 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
- * Strategy Design Pattern
  * Represents actions taken on a line in a file
  * @author jonathan
  *
  */
-public abstract class ParseStrategy {
+public abstract class Parser {
     private String trainPath;
     private String testPath;
     private String kaggleFile;
     private ArrayList<String> kaggleOutput;
 
-    public ParseStrategy(String trainPath, String testPath, String kaggleFile) {
+    public Parser(String trainPath, String testPath, String kaggleFile) {
         this.trainPath = trainPath;
         this.testPath = testPath;
         this.kaggleFile = kaggleFile;
@@ -46,7 +45,7 @@ public abstract class ParseStrategy {
         }
     }
 
-    final public void execute() throws IOException {
+    public void execute() throws IOException {
         parseFile(trainPath, true);
         System.out.println("Done with parsing file");
         postProcess();
