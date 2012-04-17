@@ -18,9 +18,9 @@ public class HMM {
 	private String testFile = null;
 	private String outputFile = null;
 	private HashMap<String, Integer> tagFreq = new HashMap<String, Integer>();
-    private HashMap<String, HashMap<String, Integer>> wordFreq = new HashMap<String, HashMap<String,Integer>>();
+    private HashMap<String, HashMap<String, Integer>> tagWordFreq = new HashMap<String, HashMap<String,Integer>>();
     private HashMap<String, HashMap<String, Integer>> bigramFreq= new HashMap<String, HashMap<String,Integer>>();
-    private HashMap<String, HashMap<String, Integer>> tagWordFreq= new HashMap<String, HashMap<String, Integer>>();
+    private HashMap<String, HashMap<String, Integer>> wordTagFreq= new HashMap<String, HashMap<String, Integer>>();
 
     private Writer out = null;
 
@@ -74,7 +74,7 @@ public class HMM {
             //update tag frequency
             Util.incrementMap(tagFreq, tag);
 
-            updateWordFreq(word, tag);
+            updateTagWordFreq(word, tag);
             updateBigramFreq(prevTag, tag);
             updateWordTagFreq(word, tag);
             prevTag = tag;
@@ -85,15 +85,15 @@ public class HMM {
      * Updates the word frequency table
      * (Maps tags to word counts)
      */
-    public void updateWordFreq(String word, String tag) {
-        if(wordFreq.containsKey(tag)){
+    public void updateTagWordFreq(String word, String tag) {
+        if(tagWordFreq.containsKey(tag)){
             HashMap<String, Integer> newMap = new HashMap<String, Integer>();
-            newMap = wordFreq.get(tag);
+            newMap = tagWordFreq.get(tag);
             Util.incrementMap(newMap, word);
         } else {
             HashMap<String, Integer> newMap = new HashMap<String, Integer>();
             newMap.put(word, 1);
-            wordFreq.put(tag, newMap);
+            tagWordFreq.put(tag, newMap);
         }
     }
 
@@ -119,16 +119,16 @@ public class HMM {
      * Updates a map of words to tag counts
      */
     public void updateWordTagFreq(String word, String tag) {
-        if(tagWordFreq.containsKey(word)){
+        if(wordTagFreq.containsKey(word)){
             HashMap<String, Integer> newMap = new HashMap<String, Integer>();
-            newMap = tagWordFreq.get(word);
+            newMap = wordTagFreq.get(word);
 
             Util.incrementMap(newMap, tag);
 
         } else {
             HashMap<String, Integer> newMap = new HashMap<String, Integer>();
             newMap.put(tag, 1);
-            tagWordFreq.put(word, newMap);
+            wordTagFreq.put(word, newMap);
         }
     }
 
@@ -149,9 +149,9 @@ public class HMM {
                 startOfSent = false;
             } else {
                 //add all tags
-                if(tagWordFreq.containsKey(word)){
+                if(wordTagFreq.containsKey(word)){
                     // Only Training Set tags
-                    HashMap<String, Integer> tagcounts = tagWordFreq.get(word);
+                    HashMap<String, Integer> tagcounts = wordTagFreq.get(word);
                     for(String tag : tagcounts.keySet()){
                         newMap.put(tag, computeNodeProb(word, tag, prevMap));
                     }
@@ -218,8 +218,8 @@ public class HMM {
             }
         }
 
-        int tagSize = tagWordFreq.keySet().size();
-        double prob =  (double) (Util.counts(wordFreq,tag,word)+1) / (double) (Util.counts(tagFreq,tag)+tagSize);
+        int tagSize = wordTagFreq.keySet().size();
+        double prob =  (double) (Util.counts(tagWordFreq,tag,word)+1) / (double) (Util.counts(tagFreq,tag)+tagSize);
 
         n.prob = maxProb * prob;
         return n;
