@@ -24,8 +24,6 @@ public class HMM {
 
     private Writer out = null;
 
-    int numBigrams = 0;
-
 	public HMM(String trainFile, String testFile, String output) throws FileNotFoundException{
 		trainingFile = trainFile;
 		this.testFile = testFile;
@@ -79,7 +77,6 @@ public class HMM {
             updateWordFreq(word, tag);
             updateBigramFreq(prevTag, tag);
             updateWordTagFreq(word, tag);
-            numBigrams++;
             prevTag = tag;
         }
     }
