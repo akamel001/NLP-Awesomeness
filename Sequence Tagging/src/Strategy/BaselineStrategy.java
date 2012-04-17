@@ -4,9 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.tartarus.snowball.TestApp;
-
 import util.Util;
 
 public class BaselineStrategy extends ParseStrategy {

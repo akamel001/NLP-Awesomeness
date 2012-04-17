@@ -35,4 +35,11 @@ public class Util {
     public static void tagWordCount(HashMap<String, HashMap<String, Integer>> tagsMap, String word, String tag) {
         wordTagCount(tagsMap, tag, word);
     }
+    public static int counts(HashMap<String, Integer> map, String key){
+        return (map.containsKey(key)) ? map.get(key) : 0;
+    }
+    
+    public static int counts(HashMap<String, HashMap<String,Integer>> map, String key1, String key2){
+        return (map.containsKey(key1))? counts(map.get(key1), key2) : 0;
+    }
 }

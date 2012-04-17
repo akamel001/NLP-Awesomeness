@@ -38,6 +38,7 @@ public abstract class ParseStrategy {
         kaggleOutput = new ArrayList<String>();
         while (in.hasNextLine()) {
             line = in.nextLine();
+            //System.out.println(line);
             if(train)
                 train(line);
             else
@@ -47,6 +48,7 @@ public abstract class ParseStrategy {
 
     final public void execute() throws IOException {
         parseFile(trainPath, true);
+        System.out.println("Done with parsing file");
         postProcess();
         parseFile(testPath, false);
         printKaggle();
