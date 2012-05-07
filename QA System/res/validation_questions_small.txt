@@ -1,0 +1,500 @@
+<top>
+
+<num> Number: 350
+
+<desc> Description:
+How many Stradivarius violins were ever made?
+
+</top>
+
+
+<top>
+
+<num> Number: 351
+
+<desc> Description:
+Who is Charles Lindbergh?
+
+</top>
+
+
+<top>
+
+<num> Number: 352
+
+<desc> Description:
+Who invented the game bowling?
+
+</top>
+
+
+<top>
+
+<num> Number: 353
+
+<desc> Description:
+The numbering system we use today was introduced to the western world by what culture?
+
+</top>
+
+
+<top>
+
+<num> Number: 354
+
+<desc> Description:
+What is a nematode?
+
+</top>
+
+
+<top>
+
+<num> Number: 355
+
+<desc> Description:
+What is the most expensive car in the world?
+
+</top>
+
+
+<top>
+
+<num> Number: 356
+
+<desc> Description:
+Where does chocolate come from?
+
+</top>
+
+
+<top>
+
+<num> Number: 357
+
+<desc> Description:
+What state in the United States covers the largest area?
+
+</top>
+
+
+<top>
+
+<num> Number: 358
+
+<desc> Description:
+What is a meerkat?
+
+</top>
+
+
+<top>
+
+<num> Number: 359
+
+<desc> Description:
+Where is Melbourne?
+
+</top>
+
+
+<top>
+
+<num> Number: 360
+
+<desc> Description:
+How much in miles is a ten K run?
+
+</top>
+
+
+<top>
+
+<num> Number: 361
+
+<desc> Description:
+How hot does the inside of an active volcano get?
+
+</top>
+
+
+<top>
+
+<num> Number: 362
+
+<desc> Description:
+What is the capital of Burkina Faso?
+
+</top>
+
+
+<top>
+
+<num> Number: 363
+
+<desc> Description:
+What is the capital of Haiti?
+
+</top>
+
+
+<top>
+
+<num> Number: 364
+
+<desc> Description:
+How many people lived in Nebraska in the mid 1980s?
+
+</top>
+
+
+<top>
+
+<num> Number: 365
+
+<desc> Description:
+What is the population of Mozambique?	
+
+</top>
+
+
+<top>
+
+<num> Number: 366
+
+<desc> Description:
+Who won the Superbowl in 1982?
+
+</top>
+
+
+<top>
+
+<num> Number: 367
+
+<desc> Description:
+What is Martin Luther King Jr.'s real birthday?
+
+</top>
+
+
+<top>
+
+<num> Number: 368
+
+<desc> Description:
+Where is Trinidad?
+
+</top>
+
+
+<top>
+
+<num> Number: 369
+
+<desc> Description:
+Where did the Inuits live?
+
+</top>
+
+
+<top>
+
+<num> Number: 370
+
+<desc> Description:
+What is the most common cancer?
+
+</top>
+
+
+<top>
+
+<num> Number: 371
+
+<desc> Description:
+A corgi is a kind of what?
+
+</top>
+
+
+<top>
+
+<num> Number: 372
+
+<desc> Description:
+When was the Triangle Shirtwaist fire?
+
+</top>
+
+
+<top>
+
+<num> Number: 373
+
+<desc> Description:
+Where is the Kalahari desert?
+
+</top>
+
+
+<top>
+
+<num> Number: 374
+
+<desc> Description:
+What is porphyria?
+
+</top>
+
+
+<top>
+
+<num> Number: 375
+
+<desc> Description:
+What ocean did the Titanic sink in?
+
+</top>
+
+
+<top>
+
+<num> Number: 376
+
+<desc> Description:
+Who was the 33rd president of the United States?
+
+</top>
+
+
+<top>
+
+<num> Number: 377
+
+<desc> Description:
+At what speed does the Earth revolve around the sun?
+
+</top>
+
+
+<top>
+
+<num> Number: 378
+
+<desc> Description:
+Who is the emperor of Japan?
+
+</top>
+
+
+<top>
+
+<num> Number: 379
+
+<desc> Description:
+How big is our galaxy in diameter?
+
+</top>
+
+
+<top>
+
+<num> Number: 380
+
+<desc> Description:
+What language is mostly spoken in Brazil?
+
+</top>
+
+
+<top>
+
+<num> Number: 381
+
+<desc> Description:
+Who assassinated President McKinley?
+
+</top>
+
+
+<top>
+
+<num> Number: 382
+
+<desc> Description:
+When did Muhammad live?
+
+</top>
+
+
+<top>
+
+<num> Number: 383
+
+<desc> Description:
+What is the largest variety of cactus?
+
+</top>
+
+
+<top>
+
+<num> Number: 384
+
+<desc> Description:
+Who invented the radio?
+
+</top>
+
+
+<top>
+
+<num> Number: 385
+
+<desc> Description:
+Where are zebras most likely found?
+
+</top>
+
+
+<top>
+
+<num> Number: 386
+
+<desc> Description:
+What is anorexia nervosa?
+
+</top>
+
+
+<top>
+
+<num> Number: 387
+
+<desc> Description:
+What year did Montana become a state? 
+
+</top>
+
+
+<top>
+
+<num> Number: 388
+
+<desc> Description:
+What were the names of the three ships used by Columbus?
+
+</top>
+
+
+<top>
+
+<num> Number: 389
+
+<desc> Description:
+Who was the 21st U.S. President?
+
+</top>
+
+
+<top>
+
+<num> Number: 390
+
+<desc> Description:
+Where was John Adams born?
+
+</top>
+
+
+<top>
+
+<num> Number: 391
+
+<desc> Description:
+Who painted Olympia?
+
+</top>
+
+
+<top>
+
+<num> Number: 392
+
+<desc> Description:
+Who was Quetzalcoatl?
+
+</top>
+
+
+<top>
+
+<num> Number: 393
+
+<desc> Description:
+Where is your corpus callosum?
+
+</top>
+
+
+<top>
+
+<num> Number: 394
+
+<desc> Description:
+What is the longest word in the English language?
+
+</top>
+
+
+<top>
+
+<num> Number: 395
+
+<desc> Description:
+What is saltpeter?
+
+</top>
+
+
+<top>
+
+<num> Number: 396
+
+<desc> Description:
+Who invented silly putty?
+
+</top>
+
+
+<top>
+
+<num> Number: 397
+
+<desc> Description:
+When was the Brandenburg Gate in Berlin built?
+
+</top>
+
+
+<top>
+
+<num> Number: 398
+
+<desc> Description:
+When is Boxing Day?
+
+</top>
+
+
+<top>
+
+<num> Number: 399
+
+<desc> Description:
+What is the exchange rate between England and the U.S.?
+
+</top>
+
+

@@ -1,0 +1,117 @@
+package train;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
+
+import main.Answerer;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSTaggerME;
+
+import org.junit.Test;
+
+import util.GuessModel;
+import util.QuestionType;
+import util.QuestionType.Type;
+
+public class Trainer extends TrainModel
+{
+
+    public Trainer()
+    {}
+
+    @Override
+    public HashMap<Type, GuessModel> train_models(
+            final HashMap<String, String> questionAnswers) {
+        // Sanity check
+        if ((questionAnswers == null) || questionAnswers.isEmpty()) {
+            System.out
+                    .println("(function: train_model) Input is null or empty!");
+            return null;
+        }
+
+        final HashMap<Type, GuessModel> retMap = new HashMap<Type, GuessModel>();
+
+        for (final Entry<String, String> entry : questionAnswers.entrySet()) {
+            final String question = entry.getKey();
+            final String answer = entry.getValue();
+            final Type type = QuestionType.classify(question);
+            final PosSequence answerPOSSeq = new PosSequence(new ArrayList<String>(
+                    Arrays.asList(Answerer.tagger.tag(answer.split(" ")))));
+            
+            // -- Testing Code Block, Delete Before Submission --
+    		
+            // System.out.printf("String: %-50s\tTag: %-40s\n", answer, answerPOSSeq.toString());
+    		
+    		// -- End Testing Code Block --
+
+            // create new guess model and insert it into the map
+            if (!retMap.containsKey(type)) {
+                final GuessModel guess = new GuessModel();
+                guess.pos_sequences.put(answerPOSSeq, 1);
+                retMap.put(type, guess);
+            } else {
+                // Model already exists
+                final GuessModel subGuess = retMap.get(type);
+                // Does this pos sequence exist?
+                if(!subGuess.pos_sequences.containsKey(answerPOSSeq)) {
+                    subGuess.pos_sequences.put(answerPOSSeq, 1);
+                } else {
+                    final int count = subGuess.pos_sequences.get(answerPOSSeq);
+                    subGuess.pos_sequences.put(answerPOSSeq, count+1);
+                }
+                
+                retMap.put(type, subGuess);
+            }
+        }
+
+        return retMap;
+    }
+
+    @Test
+    public void testTrainer() throws IOException {
+        final HashMap<String, String> map = new HashMap<String, String>();
+
+        map.put("Where is Belize located?", "Central America");
+        map.put("What is the population of the Bahamas?", "250,000");
+        map.put("How far away is the moon?", "quarter of a million miles");
+        map.put("Where did bocci originate?", "Italian");
+        final Trainer t = new Trainer();
+
+        final HashMap<Type, GuessModel> result = t.train_models(map);
+
+        for (final Entry<Type, GuessModel> entry : result.entrySet()) {
+            System.out.println("Question type (" + entry.getKey() + ")");
+            for (final Entry<PosSequence, Integer> posSeq : entry.getValue().pos_sequences.entrySet())
+                System.out.println("\t" + posSeq.toString());
+        }
+    }
+
+    @Test
+    public void testPOS() {
+        InputStream modelIn = null;
+
+        try {
+            modelIn = new FileInputStream("lib/OpenNLP/bin/en-pos-maxent.bin");
+            final POSModel model = new POSModel(modelIn);
+            final POSTaggerME tagger = new POSTaggerME(model);
+            final String sent[] = new String[] { "Most", "large", "cities",
+                    "in", "the", "US", "had", "morning", "and", "afternoon",
+                    "newspapers", "." };
+            final String tags[] = tagger.tag(sent);
+            System.out.println(sent[0] + " " + tags[0]);
+        } catch (final IOException e) {
+            // Model loading failed, handle the error
+            e.printStackTrace();
+        } finally {
+            if (modelIn != null) try {
+                modelIn.close();
+            } catch (final IOException e) {
+            }
+        }
+    }
+}

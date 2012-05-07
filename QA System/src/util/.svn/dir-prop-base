@@ -1,0 +1,10 @@
+K 10
+svn:ignore
+V 85
+Guess.class
+GuessModel.class
+Parser.class
+QuestionType$Type.class
+QuestionType.class
+
+END
